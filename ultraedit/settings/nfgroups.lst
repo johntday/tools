@@ -1,0 +1,19 @@
+[Java Files]
+ALL = *.java;*.jav;*.txt;*.xml;*.properties;*.bat;*.sh;*.ear;*.jar;*.war
+Source Files = *.java;*.jav
+Text Files = *.txt;*.xml;*.properties;*.bat
+Log Files = *.log;*.txt;*.out
+
+[XML Files]
+ALL = *.xsd;*.xml;*.dtd;*.sps;*.htm;*.html;*.wsdl;*.3dml;*.xsl;*.xslt;*.xq;*.xqr;*.docx;*.xlsx;*.pptx;*.mfd;*.dita;*.ditamap;*.spp;*.css
+Data = *.xml;*.htm;*.html;*.dita;*.ditamap;*.docx;*.pptx;*.xlsx
+Schema = *.xsd;*.dtd
+Transforms = *.xlt;*.xslt;*.xsl;*.mfd;*.xq;*.xqr
+Display = *.css
+
+[Data Files]
+ALL = *.txt;*.csv;*.out;*.bcp;*.dat;*.zip;*.rar
+
+[Documents]
+ALL = *.doc;*.docx;*.pdf;*.txt;*.xls;*.xlsx;*.ppt;*.pptx;*.rar;*.zip;*.vsd
+TXT = *.txt;*.text

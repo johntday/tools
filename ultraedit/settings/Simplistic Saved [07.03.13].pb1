@@ -1,0 +1,88 @@
+P "&Edit"
+  S
+  M "&Undo\tCtrl+Z",                             ID_EDIT_UNDO
+  S
+  M "Cu&t\tCtrl+X",                              ID_EDIT_CUT
+  M "&Copy\tCtrl+C",                             ID_EDIT_COPY
+  M "&Paste\tCtrl+V",                            ID_EDIT_PASTE
+  M "Copy File Pat&h/Name",                      ID_PATH_TO_CLIPBOARD
+  S
+  M "&Find...\tAlt+F3",                          ID_EDIT_FIND
+  M "&Replace...\tCtrl+R",                       ID_EDIT_REPLACE
+  S
+  M "Incremental Search\tCtrl+Shift+I",          ID_INCREMENTAL_SEARCH
+  S
+  M "Select &All\tCtrl+A",                       ID_EDIT_SELECTALL
+  M "Select &Line",                              ID_EDIT_SELECTLINE
+  M "Select &Word\tCtrl+J",                      ID_SELECTWORD
+  M "&Select Range...",                          ID_SET_SELECTION
+  P "D&elete"
+    M "&Delete\tDEL",                            ID_EDIT_DELETE
+    M "Delete &Line\tCtrl+E",                    ID_EDIT_DELETELINE
+    M "Delete to &Start of Line\tCtrl+F11",      ID_EDIT_DELETETOSTARTOFLINE
+    M "Delete to &End of Line\tCtrl+F12",        ID_EDIT_DELETETOENDOFLINE
+    M "Delete &All Bookmarked Lines",            ID_DELETEALLBOOKMARKLINES
+    LM "Delete All &Hidden Lines",               ID_VIEW_DELETE_HIDDEN
+  S
+  M "Date/Ti&me\tF7",                            ID_EDIT_TIMEDATE
+  S
+  M "Spell Chec&k\tCtrl+K",                      ID_SPELLCHECK
+  S
+  LM "To&ggle Word-Wrap\tCtrl+W",                ID_WORD_WRAP
+LP "File Tabs"
+  M "&Close",                                    ID_FILE_CLOSE
+  M "Close All Files E&xcept This\tShift+F4",    ID_FILE_CLOSEALL_EXCEPT
+  S
+  M "Find in Explorer pane",                     ID_MDI_FINDFILEINEXPANE
+  M "Open Folder",                               ID_MDI_OPENCFOLDER
+  S
+  M "&Save\tCtrl+S",                             ID_FILE_SAVE
+  M "Save &As...\tF12",                          ID_FILE_SAVE_AS
+  M "Save S&election As...",                     ID_FILE_SAVESEL
+  M "Make Copy/Bac&kup",                         ID_FILE_MAKECOPY
+  S
+  M "Revert to Save&d",                          ID_FILE_REVERT
+  S
+  M "Rename File",                               ID_FILE_RENAME
+  S
+  M "Copy &File Path/Name",                      ID_PATH_TO_CLIPBOARD
+  S
+  P "So&rt"
+    M "&Sort File (Using Current Options)",      ID_SORTFILE
+    LM "&Advanced Sort/Options...",              ID_SORTFILEADV
+  P "Convers&ions"
+    M "&UNIX/MAC to DOS",                        ID_FILE_CONVERT
+    M "DOS to &MAC",                             ID_FILE_DOSTOMAC
+    M "&DOS to UNIX",                            ID_FILE_CONVERT_LF
+    S
+    M "EBCDIC to &ASCII",                        ID_FILE_CONVERT_FROMEBCDIC
+    M "ASCII to &EBCDIC",                        ID_FILE_CONVERT_TOEBCDIC
+    S
+    M "OEM to ANSI",                             ID_OEMTOANSI
+    M "ANSI to OEM",                             ID_ANSITOOEM
+    S
+    M "ASCII to Un&icode",                       ID_TO_UNICODE
+    LM "Unic&ode to ASCII",                      ID_FROM_UNICODE
+  P "Special F&unctions"
+    M "&Insert File",                            ID_FILE_INSERT
+    M "Delete Active &File",                     ID_FILE_DELETE
+    M "Send &Mail",                              ID_FILE_SEND_MAIL
+    LM "Insert String At &Every Increment",      ID_FILE_SPECIALINSERT
+  S
+  M "&Print...\tCtrl+P",                         ID_FILE_PRINT
+  M "Print Pre&view",                            ID_FILE_PRINT_PREVIEW
+  S
+  P "File Tabs"
+    M "Dockable",                                ID_MDI_DOCKABLE
+    S
+    M "Single Line - scrollable",                ID_MDI_SLSCROLL
+    M "Single Line - drop down file list",       ID_MDI_SLDDFL
+    M "Multiline Tabs",                          ID_MDI_MULTILINE
+    S
+    M "S&ort File Tabs",                         ID_SORTFILETABS
+    M "Show tooltips",                           ID_POPUP_SHOWFILETABTIPS
+    LM "Tabs At The Bottom",                     ID_MDI_BOTTOM
+  S
+  M "&Restore",                                  ID_FILE_RESTORE
+  M "Mi&nimize",                                 ID_FILE_MINIMIZE
+  LM "Ma&ximize",                                ID_FILE_MAXIMIZE

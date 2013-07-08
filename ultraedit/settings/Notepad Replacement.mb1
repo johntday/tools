@@ -1,0 +1,115 @@
+P "&File"
+  M "&New\tCtrl+N",                              ID_FILE_NEW
+  M "&Open...\tCtrl+O",                          ID_FILE_OPEN
+  M "&Close",                                    ID_FILE_CLOSE
+  M "Close All &Files\tCtrl+Shift+F4",           ID_FILE_CLOSEALL
+  S
+  M "&Save\tCtrl+S",                             ID_FILE_SAVE
+  M "Save &As...\tF12",                          ID_FILE_SAVE_AS
+  M "Save A&ll\tAlt+F12",                        ID_FILE_SAVE_ALL
+  S
+  M "&Print...\tCtrl+P",                         ID_FILE_PRINT
+  M "Fa&vorite Files...\tCtrl+Shift+F",          ID_FAVORITE_FILES
+  P "Print Setup/Confi&guration"
+    M "Page Se&tup...",                          ID_PAGE_SETUP
+    M "Print Set&up...",                         ID_FILE_PRINT_SETUP
+    M "Set &Printer Font...",                    ID_CHOOSE_PRINT_FONT
+    LM "&Mirror Display Font",                   ID_MIRROR_DISPLAY_FONT
+  S
+  P "Recent F&iles"
+    LM "Recent File",                            ID_FILE_MRU_FILE1
+  S
+  M "Recent File",                               ID_FILE_MRU_FILE1
+  S
+  LM "E&xit",                                    ID_APP_EXIT2
+P "&Edit"
+  M "&Undo\tCtrl+Z",                             ID_EDIT_UNDO
+  S
+  M "Cu&t\tCtrl+X",                              ID_EDIT_CUT
+  M "&Copy\tCtrl+C",                             ID_EDIT_COPY
+  M "&Paste\tCtrl+V",                            ID_EDIT_PASTE
+  S
+  M "Select &All\tCtrl+A",                       ID_EDIT_SELECTALL
+  S
+  M "&Find...\tAlt+F3",                          ID_EDIT_FIND
+  M "Find &Next\tF3",                            ID_EDIT_FINDNEXT
+  M "&Replace...\tCtrl+R",                       ID_EDIT_REPLACE
+  M "&Goto...\tCtrl+G",                          ID_EDIT_GOTO
+  S
+  LM "Spell Chec&k\tCtrl+K",                     ID_SPELLCHECK
+P "I&nsert"
+  M "&Date/Time",                                ID_EDIT_TIMEDATE
+  S
+  M "&Line",                                     ID_INSERTLINE
+  M "&Page Break",                               ID_EDIT_PAGE_BREAK
+  S
+  LM "&File",                                    ID_FILE_INSERT
+P "&View"
+  M "&Environments...",                          ID_PROFILE_SWITCH
+  S
+  P "&Views/Lists"
+    P "&Toolbars"
+      LM "Toolbar&1",                            ID_VIEW_TOOLBAR1
+    M "&Status Bar",                             ID_VIEW_STATUS_BAR1
+    M "File Tree &View\tCtrl+U",                 ID_PRJFRAME
+    M "Fi&nd String List",                       CG_ID_VIEW_LISTOCC
+    M  "O&utput Window",                         CG_ID_VIEW_OUTPUTWINDOW
+    S
+    LM "&Recover Floating Windows",              ID_MOVE_FLOATWIN_INSIDE_APP
+  S
+  M "Line Change Indicator (LCI)",               ID_LINE_CHANGE_INDICATOR
+  M "Disable LCI For All Files",                 ID_LINE_CHANGE_INDICATOR_OFF
+  S
+  M "Highlight All Selected",                    ID_HIGHLIGHT_ALL
+  S
+  M "&Display Ruler",                            ID_DISPLAY_RULER
+  LM "Display &Line Numbers",                    ID_DISPLAY_LINENUM
+P "Forma&t"
+  M "Convert CR/LFs to &Wrap",                   ID_FILE_REMOVECR
+  M "Con&vert Wrap to CR/LFs",                   ID_FILE_SAVESOFTCR
+  S
+  M "Tabs to &Spaces",                           ID_TABTOSPACES
+  M "S&paces to Tabs (All)",                     ID_SPACESTOSTABSALL
+  S
+  M "T&o Upper Case\tAlt+F5",                    ID_TOUPPER
+  LM "To &Lower Case\tCtrl+F5",                  ID_TOLOWER
+P "&Advanced"
+  M "&Configuration...",                         ID_UEOPTIONS
+  S
+  LP "Scr&ipting"
+    M "&Scripts...",                             ID_SCRIPTS
+    S
+    LM "Script &List",                           CG_ID_VIEW_SCRIPTLIST
+P "&Window"
+  M "&Duplicate Window",                         ID_WINDOW_NEW
+  M "&Cascade",                                  ID_WINDOW_CASCADE
+  M "&Tile Horizontal",                          ID_WINDOW_TILE_HORZ
+  M "Tile &Vertical",                            ID_WINDOW_TILE_VERT
+  M "&Next Window",                              ID_NEXTWINDOW
+  M "&Previous Window",                          ID_PREVWINDOW
+  M "&Arrange Icons",                            ID_WINDOW_ARRANGE
+  S
+  M "N&ext File Tab\tAlt+Down",                  ID_NEXTTAB
+  M "Previous File Ta&b\tAlt+Up",                ID_PREVTAB
+  S
+  M "Split Wind&ow",                             ID_SPLIT_WINDOW
+  S
+  M "&Minimize All Windows",                     ID_FILE_MINIMIZE_ALL
+  M "C&lose All Files",                          ID_FILE_CLOSEALL
+  S
+  M "O&utput Window",                            CG_ID_VIEW_OUTPUTWINDOW
+  S
+  M "S&ynchronized Scrolling",                   ID_SYNC_WINDOWS
+  S
+  LM "",                                        AFX_IDM_FIRST_MDICHILD
+LP "&Help"
+  M "&Index\tF1",                                ID_HELP_INDEX
+  M "&Using Help",                               ID_HELP_USING
+  M "&Quick Start Guide",                        ID_SHOW_DAILYTIP
+  S
+  M "Online &Forums",                            ID_HELP_FORUMS
+  M "&Check for Updates",                        ID_CHECKFORUPDATES
+  M "IDM &Products",                             ID_HELP_SHOWAD
+  S
+  M "&Register...",                              ID_REGISTER_ULTRAEDIT
+  LM "&About...",                                ID_APP_ABOUT
