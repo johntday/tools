@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<Templates encode="utf8escenc"><Template Name="Date MDY">[DATE_MDY]</Template><Template Name="Time">[TIME]</Template><Template Name="Full File Name">[FULL_FILE_NAME]</Template><Template Name="File Name 2">[FILE_NAME]_[DATE_USER_SYS]yyMMdd[DATE_USER_SYS_END][FILE_EXTENSION]</Template><Template Name="Template #5">// ----------------------------------------------------------------------------&#xD;
+//&#xD;
+//  File:   [FILE_NAME][FILE_EXTENSION]&#xD;
+//  Creation Date:  [DATE_DMY]&#xD;
+//  Last Modified:  [DATE_DMY]&#xD;
+//  Purpose:&#xD;
+//&#xD;
+// ----------------------------------------------------------------------------&#xD;
+</Template><Template Name="Template #6">&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"&gt;&#xD;
+&lt;html xmlns="http://www.w3.org/1999/xhtml"&gt;&#xD;
+&lt;head&gt;&#xD;
+  &lt;meta http-equiv="content-type" content="text/html; charset=iso-8859-1" /&gt;&#xD;
+&lt;/head&gt;&#xD;
+&lt;body&gt;&#xD;
+^&#xD;
+&lt;/body&gt;&#xD;
+&lt;/html&gt;&#xD;
+</Template><Template Name="Template #7">&lt;%&#xD;
+^&#xD;
+%&gt;</Template><Template Name="Template #8">&lt;?php&#xD;
+^&#xD;
+?&gt;</Template><Template Name="Template #9">/*&#xD;
+^&#xD;
+*/</Template><Template Name="Template #11">&lt;!-- ^ --&gt;</Template><Template Name="Template #12">if ()&#xD;
+{&#xD;
+  ^&#xD;
+}</Template><Template Name="Template #14">function ^() {&#xD;
+}</Template><Template Name="Template #15">&lt;b&gt;[$replace$]&lt;/b&gt;</Template><Template Name="Template #16">&lt;script src="^.js" type="text/javascript"&gt;&lt;/script&gt;</Template></Templates>

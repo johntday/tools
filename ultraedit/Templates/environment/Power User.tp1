@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<Templates encode="utf8escenc"><Template Name="Win 7 Commands">SVN CollabNet&#xD;
+    port:  3690&#xD;
+    repository path:  "d:\svn_repository"&#xD;
+    install dir:  "C:\Program Files (x86)\CollabNet\Subversion Server"&#xD;
+    &#xD;
+    1.  D:\&gt;svnadmin create d:\svn_repository\mystuff&#xD;
+        the repository URL  "svn://localhost:3690/mystuff"&#xD;
+    2.  restart server&#xD;
+    3.  do initial checkout&#xD;
+        svn checkout --username=jtday --password=schwarzschild svn://localhost:3690/mystuff C:\Users\jtday\Documents\workspace&#xD;
+    4.  create standard repository layout&#xD;
+        md C:\Users\jtday\Documents\workspace\trunk&#xD;
+        md C:\Users\jtday\Documents\workspace\branches&#xD;
+        md C:\Users\jtday\Documents\workspace\tags&#xD;
+        &#xD;
+        svn add C:\Users\jtday\Documents\workspace\trunk C:\Users\jtday\Documents\workspace\branches C:\Users\jtday\Documents\workspace\tags&#xD;
+        svn commit --username=jtday --password=schwarzschild --message="Directory structure created" C:\Users\jtday\Documents\workspace&#xD;
+        svn switch svn://localhost:3690/mystuff/trunk C:\Users\jtday\Documents\workspace&#xD;
+    &#xD;
+cd\Users\jtday\Documents\workspace\docs&#xD;
+zip -r "C:\Users\jtday\Documents\workspace\dist\PCMapp_Tests" PCMapp_Tests&#xD;
+&#xD;
+# tag&#xD;
+md C:\Users\jtday\Documents\workspace\tags\release-20100518\dist&#xD;
+svn add C:\Users\jtday\Documents\workspace\tags\release-20100518\dist&#xD;
+svn commit --username=jtday --password=schwarzschild --message="Directory structure created" C:\Users\jtday\Documents\workspace\tags\release-20100518\dist&#xD;
+svn copy --username=jtday --password=schwarzschild --message="Tagging release 20100518" C:\Users\jtday\Documents\workspace\dist C:\Users\jtday\Documents\workspace\tags\release-20100518\dist&#xD;
+&#xD;
+$ svn copy http://svn.example.com/repos/calc/trunk \&#xD;
+           http://svn.example.com/repos/calc/tags/release-1.0 \&#xD;
+      -m "Tagging the 1.0 release of the 'calc' project."&#xD;
+</Template></Templates>
