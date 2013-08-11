@@ -1,4 +1,4 @@
-// include C:\\mystuff\\tools\\UltraEdit\\Scripts\\EnvParms.js
+// include V:\\GitHub\\tools\\ultraedit\\Scripts\\EnvParms.js
 
 var line;
 if (UltraEdit.activeDocument.isSel()) {
@@ -12,17 +12,17 @@ line = line.replace(/\r?\n/g,"")
            .replace(/'/g,"");
 
 var a = line.indexOf("\"");
-//UltraEdit.outputWindow.write("[a=" + a + "]");
+//UltraEdit.outputWindow.write("a=[" + a + "]");
 if (a != -1) {
     var b = line.indexOf("\"", a+1);
-    //UltraEdit.outputWindow.write("[b=" + b + "]");
+    //UltraEdit.outputWindow.write("b=[" + b + "]");
     if (b != -1) {
         line = line.substring(a+1, b);
     }
 }
-
+//UltraEdit.outputWindow.write("line1=[" + line + "]");
 line = subEnvParms(line);
 
-UltraEdit.outputWindow.write("[" + line + "]");
+//UltraEdit.outputWindow.write("[" + line + "]");
 
 UltraEdit.open(line);

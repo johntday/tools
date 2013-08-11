@@ -8,12 +8,14 @@ var WORKSPACE      = SVN_BASE + "\\workspace";
 var uelogPath      = "C:\\logs\\UltraEdit\\";
 var uelogfile      = uelogPath + "\\MyLog.txt";
 var DROPBOX        = "V:\\Dropbox";
+var GITHUB         = "V:\\GitHub";
 // ----------------------------------------------------------------------------
 // FUNCTIONS
 // ----------------------------------------------------------------------------
 function subEnvParms(myString) {
     myString = myString.replace("SVN_BASE",SVN_BASE)
                        .replace("DOCUMENTS_BASE",DOCUMENTS_BASE)
-                       .replace("DROPBOX",DROPBOX);
+                       .replace("DROPBOX",DROPBOX)
+                       .replace("GITHUB",GITHUB);
     return myString;
 }
