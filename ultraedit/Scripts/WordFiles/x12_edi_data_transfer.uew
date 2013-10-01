@@ -1,0 +1,61 @@
+/L8"X12" Noquote File Extensions = X12
+/Delimiters = *:~^|\!()[]º
+/Function String 1 = "^{%^ISA^}^{%^IEA^}"
+/Function String 2 = "^{%^GS^}"
+/Function String 3 = "^{%^ST?997^}^{%^EB^}"
+/Function String 4 = "^{%^BHT^}^{%^STC^}"
+/Function String 5 = "^{%^AAA^}^{%^INS^}"
+/Open Fold Strings = "ISA"
+/Close Fold Strings = "IEA"
+/C1"Delimiters"
+*
+~
+^
+|
+\
+!
+/C2"Segment Names & Sub Sep"
+AMT
+CL1 CR1 CR2 CR5 CR6 CRC
+DMG DTP
+HSD
+III
+MSG
+N3 N4 NM1
+PER PRV PWK
+REF
+:
+/C3"Misc Segments"
+EB EQ
+HCR HI
+LE LS
+UM
+/C4"TRN INS STC SVC"
+INS
+STC SVC
+TRN
+/C5"HL Segment"
+HL
+/C6"Header/Trailer Segments"
+** 004010X
+GE GS
+IEA ISA
+SE ST
+270 271 276 277 278 
+837
+/C7"BHT Segment"
+BHT
+/C8"Errors"
+997
+AAA
+A3 A4 A6 A7
+AK1 AK101 AK102
+AK2 AK201 AK202
+AK3 AK301 AK302 AK303 AK304
+AK4 AK401 AK402 AK403 AK404
+AK5 AK501 AK502 AK503 AK504 AK505 AK506
+AK9 AK901 AK902 AK903 AK904 AK905 AK906 AK907 AK908 AK909
+D0
+E0 E1
+ERROR
+TA1 TA101 TA102 TA103 TA104 TA105

@@ -1,0 +1,60 @@
+/L20"Batch Files" Nocase Line Comment = rem Line Comment Alt = REM String Chars = "; File Extensions = BAT CMD SYS
+/Delimiters = #$()+,./:;< =	>\
+/Function String = "%:^(*^)$"
+/C1"Batch-commands"
+do
+else end errorlevel exist exit
+for
+goto
+if
+not
+pause
+return
+say select
+then
+when
+/C2"DOS-Commands"
+ansi append assign attrib autofail
+backup basedev boot break buffers
+cache call cd chcp chdir chkdsk choice cls cmd codepage command comp copy country
+date ddinstal debug del detach device devicehigh devinfo dir diskcoache diskcomp diskcopy doskey dpath dumpprocess
+eautil endlocal erase exit_vdm extproc
+fcbs fdisk fdiskpm files find format fsaccess fsfilter
+graftabl
+iopl
+join
+keyb keys
+label lastdrive libpath lh loadhigh
+makeini maxwait md mem memman mkdir mode move
+net
+patch path pauseonerror picview pmrexx print printmonbufsize priority priority_disk_io prompt protectonly
+protshell pstat
+rd recover reipl ren rename replace restore rmdir rmsize run
+set setboot setlocal shell shift sort spool start subst suppresspopups swappath syslevel syslog
+threads time timeslice trace tracebuf tracefmt trapdump tree type
+undelete unpack use
+ver verify view vmdisk vol
+xcopy xcopy32 xdfcopy
+/C3"Echo"
+@echo
+echo
+off on
+/C4"Semikolon"
+;
+/C5"Delimiters"
+#
+$
+(
+)
++
+,
+.
+// /
+:
+<
+=
+>
+\
+/C6"C6 not used"
+/C7"C7 not used"
+/C8"C8 not used"

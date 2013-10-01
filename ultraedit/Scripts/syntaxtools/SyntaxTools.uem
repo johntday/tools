@@ -1,0 +1,3272 @@
+/*! File: SyntaxTools.uem - version from 2011-06-13.
+
+This UltraEdit/UEStudio macro code file contains the macro source with
+comments for the syntax tools macro set developed by Mofi. For a detailed
+description see the HTML files LanguageSettings.htm, SortLanguage.htm,
+TestForDuplicate.htm and TestForInvalid.htm.
+
+The source code of every macro in this file can be copied to the edit macro
+dialog with the macro "Copy Macro Code" in Mofis_Macro_Examples.zip. This
+zip file contains also other useful files like a macro reference file and
+describes in the UEM file how to setup UltraEdit/UEStudio for best viewing
+and editing UEM files. For further information see the user forum topic
+http://www.ultraedit.com/forums/viewtopic.php?t=4515
+
+This macro code file is best viewed/edited with a "Tab Stop Value"
+of 3 or 4 and with "Use spaces in place of Tabs" not checked - see
+"Word Wrap/Tab Settings" in the configuration dialog. Use also the
+wordfile for "UE/UES Macros" for support of syntax highlighting,
+auto indent, code folding, etc.
+
+ATTENTION!
+
+The macros are not working correct when the setting "Automatically copy to
+clipboard when selection is made" at Configuration - Editor - Miscellaneous
+is enabled. Uncheck this setting before running any macro. And also disable
+word-wrap mode if word-wrap is enabled for the wordfile or by default for
+new (temporary) files. !*/
+
+// ***** SortLanguage ******************************************************
+
+// Macro "SortLanguage" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+
+// 2006-04-02: Set cursor to the end of the current line and check if it
+// is a blank line or a line which only contains spaces, tabs and form feeds
+// which are removed with a loop solution because the macro code sequence:
+//   Key RIGHT ARROW
+//   Find RegExp Up "[ ^t^b]+"
+//   Delete
+// does not work (bug of find command). If the current line is a blank line,
+// the cursor is set in a loop to the end of the next line until either a
+// non-blank line is found or the end of the file is reached.
+
+	Loop
+		Key END
+		IfEof
+			ExitLoop
+		EndIf
+		IfColNum 1
+			Key DOWN ARROW
+		Else
+			Key LEFT ARROW
+			IfCharIs 32
+				Key DEL
+			Else
+				IfCharIs 9
+					Key DEL
+				Else
+					IfCharIs 12
+						Key DEL
+					Else
+						ExitLoop
+					EndIf
+				EndIf
+			EndIf
+		EndIf
+	EndLoop
+
+// 2006-02-19: The following code section is rewritten to fix the problem
+// with selecting the wrong language definition if the words of the last
+// language definition in the current file with more than 1 language
+// definitions should be sorted.
+// Find start of current language definition and exit macro if not found.
+// The cursor is set to the end of the current line before searching down
+// to next language definition. This makes sure that if cursor is already
+// at start of the language definition, not the wrong language definition
+// is later selected. If next language definition is found, set cursor
+// back at start of this language definition line. Now search up for the
+// language definition and if found set the cursor to start of this line.
+// 2006-04-17: Insert macro command UnixReOn or PerlReOn before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+
+	Find MatchCase RegExp "%/L[1-9][0-9]++*File "
+	IfFound
+		Key HOME
+	EndIf
+	Find MatchCase RegExp Up "%/L[1-9][0-9]++*File "
+	IfNotFound
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+	Key HOME
+
+// 2006-02-19: This language selecting code block with removing the
+// blank lines after copying to the new temp file is completely new.
+// The cursor is at start of the line of the current language definition.
+// The macro should select everything from here to next language definition
+// or end of the file. But this would only select the language definition
+// of the current language if the cursor is at the start of the line. So
+// the cursor must be moved right once. The '/' of /Ln is not selected
+// by this new method which must be taken into consideration twice at
+// the following macro code.
+
+	Key RIGHT ARROW
+	StartSelect
+	Find MatchCase RegExp Select "%/L[1-9][0-9]++*File "
+	IfSel
+		Key HOME
+	Else
+		SelectToBottom
+	EndIf
+	Clipboard 9
+	Copy
+	EndSelect
+
+// All lines of the language definition including blank lines except first
+// character ('/') is now copied into clipboard 9. The macro now creates
+// a new temp file, pastes the lines, removes all trailing spaces, deletes
+// all blank lines (in a loop because of a bug in v10.xx of UltraEdit) and
+// adds a single empty line at end of the file if the last line is already
+// terminated with a line break or adds 2 line breaks, if the last line
+// is not terminated with a line break.
+// 2006-04-17: Inserted UnixMacToDos to create always a new DOS file.
+
+	NewFile
+	UnixMacToDos
+	Paste
+	Top
+	TrimTrailingSpaces
+	Loop
+		Find "^p^p"
+		Replace All "^p"
+		IfNotFound
+			ExitLoop
+		EndIf
+	EndLoop
+	Bottom
+	IfColNum 1
+	"
+	"
+	Else
+	"
+	
+	"
+	EndIf
+	Top
+
+// Check case sensitivity, HTML and LATEX language definitions for
+// later correct sort according to these settings. Because the macro
+// language does not support variables, the first three lines are
+// used temporary for information storage and cut to clipboard 9.
+// 2006-02-19: Add missing '/' at start of language definition line
+// and set cursor back to top of file before searching for the keywords.
+// 2006-04-02: Search also for wrong written Nocase and fix it. And
+// search also for XML_LANG which is handled by UE/UES like HTML_LANG.
+
+	"0...Nocase
+	0...HTML_LANG
+	0...LATEX_LANG
+	/"
+	Top
+	Find RegExp "%/L[1-9][0-9]++*Nocase"
+	IfFound
+		Key END
+		Find Up "Nocase"
+		Replace "Nocase"
+		OverStrikeMode
+		Top
+		"1"
+	EndIf
+	OverStrikeMode
+	Top
+	Find MatchCase RegExp "%/L[1-9][0-9]++*HTML_LANG"
+	IfFound
+		Top
+		Key DOWN ARROW
+		"1"
+	EndIf
+	Top
+	Find MatchCase RegExp "%/L[1-9][0-9]++*XML_LANG"
+	IfFound
+		Top
+		Key DOWN ARROW
+		"1"
+	EndIf
+	Top
+	Find MatchCase RegExp "%/L[1-9][0-9]++*LATEX_LANG"
+	IfFound
+		Top
+		Key DOWN ARROW
+		Key DOWN ARROW
+		"1"
+	EndIf
+	InsertMode
+	Top
+	StartSelect
+	Key DOWN ARROW
+	Key DOWN ARROW
+	Key DOWN ARROW
+	EndSelect
+	Cut
+
+// A second temp file is required for sorting the words which is opened here
+// once outside the following color group sorting loop. Clipboard 8 is used
+// now for copying data.
+// 2006-04-17: Inserted UnixMacToDos to create always a new DOS file.
+// 2011-06-13: Loop count increased from 8 to 20 for up to 20 color groups.
+
+	NewFile
+	UnixMacToDos
+	NextWindow
+	Clipboard 8
+	Loop 20
+
+// Selecting all words of current group and copy it to second temp file.
+// It is possible that a color group is defined but does not contain
+// any words. In this case the group is ignored. The selecting search
+// should also be possible with a single "^{%/C[1-9][0-9]++^}^{^p$^}"
+// search, but this is not working at an empty color group (bug ?).
+// 2011-06-13: Regular expressions changed for up to 20 color groups.
+
+		Find MatchCase RegExp "%/C[1-9][0-9]++"
+		IfNotFound
+			ExitLoop
+// 2006-11-19: Fixed wrong command Else to EndIf.
+		EndIf
+		Key HOME
+		Key DOWN ARROW
+		Find MatchCase RegExp Select "%/C[1-9][0-9]++"
+		IfNotFound
+			Find MatchCase RegExp Select "^p$"
+		EndIf
+		StartSelect
+		Key HOME
+		EndSelect
+		IfSel
+			Copy
+			PreviousWindow
+			Paste
+			Top
+
+// Remove trailing spaces and remove "// " which marks lines with words
+// beginning with '/'. Then expand all substring definitions with "**__"
+// instead of a single "** " at start of the line. This is done with a
+// submacro because loop nesting is not possible in UE macro language.
+
+			TrimTrailingSpaces
+			Find RegExp "%// "
+			Replace All ""
+			PlayMacro 1 "ExpandSubstring"
+
+// Now LATEX and HTML specific reformatting is done. For LATEX words
+// starting with backslash append the backslash at the end of each word
+// and remove the backslash at the beginning. For HTML do the same with
+// "<" and "</".
+
+			Top
+			Clipboard 9
+			Paste
+			Key UP ARROW
+			IfCharIs "1"
+				Find RegExp "^\^([~ ^p]+^)"
+				Replace All "^1__^\"
+			EndIf
+			Top
+			Key DOWN ARROW
+			IfCharIs "1"
+				Find RegExp "</^([~ ^p]+^)"
+				Replace All "^1_</"
+				Find RegExp "<^([~ ^p]+^)>"
+				Replace All "^1<_<"
+				Find RegExp "<^([~_/ ^p][~ ^p]++^)"
+				Replace All "^1>_<"
+			EndIf
+			Clipboard 8
+
+// Now convert all spaces to line breaks to get only 1 word per line.
+// 2005-04-27: Find " " is replaced by following command to fix
+// problem with more than one space between the words.
+
+			Find RegExp "[ ^t]+"
+			Replace All "^p"
+
+// Sort all lines except the first 3 lines with the variables according
+// to the case sensitivity specified for the language and reconvert
+// special words back to original definition.
+
+			Top
+			IfCharIs "0"
+				Key DOWN ARROW
+				Key DOWN ARROW
+				Key DOWN ARROW
+				SelectToBottom
+				SortAsc RemoveDup 1 -1 0 0 0 0 0 0
+				EndSelect
+				Top
+				Key DOWN ARROW
+				Key DOWN ARROW
+				Key DOWN ARROW
+				PlayMacro 1 "CollectCase"
+			Else
+				Key DOWN ARROW
+				Key DOWN ARROW
+				Key DOWN ARROW
+				SelectToBottom
+				SortAsc IgnoreCase RemoveDup 1 -1 0 0 0 0 0 0
+				EndSelect
+				Top
+				Key DOWN ARROW
+				Key DOWN ARROW
+				Key DOWN ARROW
+				PlayMacro 1 "CollectNocase"
+			EndIf
+			Top
+			PlayMacro 1 "ReconvertWords"
+
+// Delete the 3 variable lines and copy the now sorted words of the
+// current color group back to the first temp file with replacing
+// the unsorted definitions.
+
+			Top
+			StartSelect
+			Key DOWN ARROW
+			Key DOWN ARROW
+			Key DOWN ARROW
+			EndSelect
+			Delete
+			SelectAll
+			Cut
+			NextWindow
+			Paste
+		EndIf
+	EndLoop
+
+// Discard second temp file. 2006-11-19: Clear clipboard 8 is done later.
+
+	PreviousWindow
+	CloseFile NoSave
+
+// Copy now whole sorted language definition with clipboard 9 back to
+// the source file with replacing the unsorted language definition and
+// discard first temp file.
+// 2006-02-19: The '/' at start of the language definition is not selected
+// in the source wordfile, but it was inserted in the temp file. So it must
+// be removed here before copying and pasting the sorted language definition
+// over the still existing selection in the source wordfile.
+// 2006-11-19: Before copying whole sorted language definition copy
+// the language definition only to clipboard 8 - see below why.
+// 2006-12-05: In the temp file the language definition line does
+// not start with a slash anymore after deleting first character.
+// 2007-08-02: It's possible under certain conditions that UltraEdit does not
+// recognize that the cursor is already at top of the file after deleting the
+// slash and before executing the regular expression find. As workaround a
+// space is inserted at top of the file, then the slash is deleted and last
+// the inserted space too. That helps UltraEdit to synchronize and the Find
+// then really always finds the language number and language name.
+
+	Top
+	" "
+	Key DEL
+	Key BACKSPACE
+	Find MatchCase RegExp "%L[1-9][0-9]++"*""
+	Copy
+	Clipboard 9
+	SelectAll
+	Copy
+	CloseFile NoSave
+
+// 2006-11-19: Depending on the version of UltraEdit/UEStudio and the config
+// option "Move to nearest left tab after current tab is closed" and the
+// file tab order now either the wordfile with the still selected unsorted
+// language definition has the focus or a different file. So search in a
+// loop for a file which has a selection and this selection contains the
+// language definition /Lxx"name" which was sorted before. Only now the
+// sorted language definition can be pasted over the unsorted version.
+
+	Clipboard 8
+	Loop
+		IfSel
+			Find MatchCase "^c"
+			Replace All SelectText "^c"
+			IfFound
+				ExitLoop
+			EndIf
+		EndIf
+		NextWindow
+	EndLoop
+	ClearClipboard
+	Clipboard 9
+	Paste
+
+// Clean up line breaks at end of file if necessary, save wordfile
+// and set cursor to begin of the sorted language definition.
+// Inserting a space and deleting it immediately is necessary here
+// because of a bug of UE (never finds a non white character here).
+
+	" "
+	Key BACKSPACE
+	Find RegExp "[~ ^t^p]"
+	IfNotFound
+		Find RegExp Up "[~ ^t^p]"
+		EndSelect
+		Key RIGHT ARROW
+		SelectToBottom
+		Delete
+	EndIf
+	ClearClipboard
+	Clipboard 0
+
+// Add this command to enable auto-saving of the modified wordfile after
+// sorting. By default the SortLanguage macro does not contain this Save
+// command.
+//	Save
+	Find MatchCase RegExp Up "%/L[1-9][0-9]++*File "
+
+// 2006-02-19: For v10.xx of UltraEdit the current find selection
+// must be ended here or the '/' will be selected after Key HOME.
+
+	EndSelect
+	Key HOME
+
+// 2006-04-17: Insert macro command UnixReOn or PerlReOn here at the end
+// of the macro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn
+
+
+// ***** CollectCase *******************************************************
+
+// This macro is a submacro for macro SortLanguage. It collects the
+// sorted word definitions of a color group. All words starting with
+// the same case sensitive character will be collected on a single
+// line. The line length is limited to 106 characters. If this limit
+// is crossed, a new line is started.
+
+// Macro "CollectCase" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+	IfCharIs "[^^^%^$^?^*^+^[^]]"
+		"^"
+		Key LEFT ARROW
+		StartSelect
+		Key RIGHT ARROW
+		Key RIGHT ARROW
+		EndSelect
+		Copy
+		Key LEFT ARROW
+		Key BACKSPACE
+		Key RIGHT ARROW
+	Else
+		StartSelect
+		Key RIGHT ARROW
+		EndSelect
+		Copy
+	EndIf
+	Loop
+		Find MatchCase RegExp "%^c"
+		IfFound
+			Key UP ARROW
+			Key END
+			" "
+			Key DEL
+			Key END
+			IfColNumGt 107
+				Find Up " "
+				Replace "^p"
+				Key RIGHT ARROW
+			EndIf
+		Else
+			Key HOME
+			Key DOWN ARROW
+			IfEof
+				ExitLoop
+			Else
+				IfCharIs "[^^^%^$^?^*^+^[^]]"
+					"^"
+					Key LEFT ARROW
+					StartSelect
+					Key RIGHT ARROW
+					Key RIGHT ARROW
+					EndSelect
+					Copy
+					Key LEFT ARROW
+					Key BACKSPACE
+					Key RIGHT ARROW
+				Else
+					StartSelect
+					Key RIGHT ARROW
+					EndSelect
+					Copy
+				EndIf
+			EndIf
+		EndIf
+	EndLoop
+
+
+// ***** CollectNocase *****************************************************
+
+// This macro is a submacro for macro SortLanguage. It collects the
+// sorted word definitions of a color group. All words starting with
+// the same not case sensitive character will be collected on a
+// single line. The line length is limited to 106 characters. If
+// this limit is crossed, a new line is started.
+
+// Macro "CollectNocase" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+	IfCharIs "[^^^%^$^?^*^+^[^]]"
+		"^"
+		Key LEFT ARROW
+		StartSelect
+		Key RIGHT ARROW
+		Key RIGHT ARROW
+		EndSelect
+		Copy
+		Key LEFT ARROW
+		Key BACKSPACE
+		Key RIGHT ARROW
+	Else
+		StartSelect
+		Key RIGHT ARROW
+		EndSelect
+		Copy
+	EndIf
+	Loop
+		Find RegExp "%^c"
+		IfFound
+			Key UP ARROW
+			Key END
+			" "
+			Key DEL
+			Key END
+			IfColNumGt 107
+				Find Up " "
+				Replace "^p"
+				Key RIGHT ARROW
+			EndIf
+		Else
+			Key HOME
+			Key DOWN ARROW
+			IfEof
+				ExitLoop
+			Else
+				IfCharIs "[^^^%^$^?^*^+^[^]]"
+					"^"
+					Key LEFT ARROW
+					StartSelect
+					Key RIGHT ARROW
+					Key RIGHT ARROW
+					EndSelect
+					Copy
+					Key LEFT ARROW
+					Key BACKSPACE
+					Key RIGHT ARROW
+				Else
+					StartSelect
+					Key RIGHT ARROW
+					EndSelect
+					Copy
+				EndIf
+			EndIf
+		EndIf
+	EndLoop
+
+
+// ***** ExpandSubstring ***************************************************
+
+// This macro is a submacro for macro SortLanguage. It expands every
+// substring definition which are marked with "** " at beginning of
+// a line with "**__" and removes the substring definition string "** ".
+
+// Macro "ExpandSubstring" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+	Loop
+		Find RegExp "%^*^* "
+		IfNotFound
+			ExitLoop
+// 2006-11-19: Fixed wrong command Else to EndIf.
+		EndIf
+		StartSelect
+		Key LEFT ARROW
+		EndSelect
+		Delete
+		SelectLine
+		StartSelect
+		Find " "
+		Replace All SelectText " **__"
+		EndSelect
+	EndLoop
+	Top
+// 2009-06-11: Changed the method used to delete the remaining space at start
+// of the line with substrings because of a bug in UltraEdit v15.00.0.1048.
+	Find RegExp "% ^*^*__"
+	Replace All "**__"
+
+
+// ***** FindDupCase *******************************************************
+
+// This macro is a submacro for macro TestForDuplicate. The string to search
+// (input parameter) is already in clipboard 8. The cursor is at start of
+// the line below the line with the word or substring to search for. This
+// line is already marked with a bookmark. Clipboard 9 is the buffer for
+// the lines with duplicate words or substrings found by this submacro.
+// This submacro searches case sensitive (Nocase not present).
+// It first searches from the bookmarked line down to end of the file
+// for the string in clipboard 8. If the string is not found, the word
+// or substring is not duplicate and nothing must be done.
+// If the string is found, the macro sets the cursor to the bookmarked line.
+// Then it searches up for a DOS line termination (CR/LF) and appends it to
+// clipboard 9. This creates a blank line before a new block of duplicate
+// words in the report. The cursor is now again at start of the bookmarked
+// line. With a simple UP the cursor is set at start of the line which
+// contains the search string in clipboard 8. Now it runs in a loop the
+// search and moves all lines with the search string to clipboard 9.
+// After all duplicates were found the cursor is placed at start of
+// the bookmarked line.
+
+// Macro "FindDupCase" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	Find MatchCase "^c"
+	IfFound
+		GotoBookMark
+		Find Up "^p"
+		Clipboard 9
+		CopyAppend
+		Clipboard 8
+		Key UP ARROW
+		Loop
+			Find MatchCase "^c"
+			IfFound
+				Clipboard 9
+				SelectLine
+				CutAppend
+				Clipboard 8
+			Else
+				ExitLoop
+			EndIf
+		EndLoop
+		GotoBookMark
+	EndIf
+
+
+// ***** FindDupNocase *****************************************************
+
+// This macro is a submacro for macro TestForDuplicate. It comparison
+// to the macro FindDupCase only 1 difference at 2 commands exists: This
+// submacro does not search case sensitive for the string in clipboard 8.
+// This submacro is used if language definition keyword Nocase is present.
+
+// Macro "FindDupNocase" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	Find "^c"
+	IfFound
+		GotoBookMark
+		Find Up "^p"
+		Clipboard 9
+		CopyAppend
+		Clipboard 8
+		Key UP ARROW
+		Loop
+			Find "^c"
+			IfFound
+				Clipboard 9
+				SelectLine
+				CutAppend
+				Clipboard 8
+			Else
+				ExitLoop
+			EndIf
+		EndLoop
+		GotoBookMark
+	EndIf
+
+
+// ***** ReconvertWords ****************************************************
+
+// This macro is a submacro for macro SortLanguage. After collecting the
+// words, some specials must be reconverted. First all lines with words
+// beginning with a slash must begin with "// ". This can be easily done
+// with 1 search and replace.
+
+// Macro "ReconvertWords" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+	Find RegExp "%/"
+	Replace All "// /"
+
+// Substrings are marked with "**__" at beginning of each word. The problem
+// here at converting it back is, that also words starting with "*" can be
+// defined in the same color group and now these words are mixed with the
+// substrings. So the substring words must be extracted from the words
+// starting with "*".
+
+	Find RegExp "^*^*__"
+	IfFound
+		Key LEFT ARROW
+		Key LEFT ARROW
+		Key LEFT ARROW
+		Key LEFT ARROW
+	"
+	"
+		Key UP ARROW
+		Key END
+		IfColNum 1
+			Key DEL
+		Else
+			Key BACKSPACE
+		EndIf
+		Loop
+			Find RegExp "^*^*__[~ ^p]+"
+			IfNotFound
+				ExitLoop
+			EndIf
+		EndLoop
+		Key RIGHT ARROW
+		Key LEFT ARROW
+	"
+	"
+		Key DEL
+		Top
+		Find RegExp "%^*^*__"
+		Replace All "^*^* "
+		Find RegExp "^*^*__"
+		Replace All ""
+	EndIf
+
+// Also HTML (starting with "<" or "</") and LATEX specific words
+// (starting with "\") must be reconverted back to their original
+// definition. If a language is HTML_LANG (XML_LANG) or LATEX_LANG
+// is defined at column 1 line 2 and 3 ("0" = FALSE, "1" = TRUE).
+
+	Top
+	Key DOWN ARROW
+	IfCharIs "1"
+		Find RegExp "^([~ ^p]+^)_</"
+		Replace All "</^1"
+		Find RegExp "^([~ ^p]+^)>_<"
+		Replace All "<^1"
+		Find RegExp "^([~ ^p]+^)<_<"
+		Replace All "<^1>"
+	EndIf
+	Key DOWN ARROW
+	IfCharIs "1"
+		Find RegExp "^([~ ^p]+^)__^\"
+		Replace All "^\^1"
+	EndIf
+
+
+// ***** SettingsCopyAll ***************************************************
+
+// This macro copies the color and font style settings stored in a separate
+// file for example with extension UESH (UltraEdit Syntax Highlighting
+// color scheme) created with macro SettingsExtract to all languages in
+// a wordfile. Only 2 files should be open when running this script. The
+// active file contains the color and font style settings which should
+// be copied into the wordfile. The other file open is the wordfile for
+// UltraEdit v15.00 or UEStudio v9.10 or later. It does not matter if
+// there are already color and font style settings in the wordfile.
+// Existing color and font style settings are automatically removed before
+// copying the new color scheme to all languages in the wordfile. To copy
+// the color and font style settings to a single language in a wordfile
+// with multiple languages use the macro "SettingsCopyCur".
+
+// Macro "SettingsCopyAll" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+
+// First check if the current file contains a language color scheme in the
+// required format, created before for example with macro SettingsExtract.
+// This macro would also work with active file is a wordfile containing
+// 1 language with color settings. But it is recommended to work with a
+// file containing only the color settings of a language and not with an
+// entire wordfile.
+	Top
+	Find MatchCase RegExp "%/Colors =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Back =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Auto Back =[ 01]+,[ 01]+,[ 01]+,[ 01]+,[ 01]+*^p/Font Style =[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+*^p"
+	IfNotFound
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+
+// Make sure that the last line of the file has a line termination. It can
+// be expected that the last line in a color scheme file has no preceding
+// whitespace and therefore an enabled auto indent does not matter.
+	Bottom
+	IfColNum 1
+	Else
+	"
+	"
+	EndIf
+
+// Copy whole content of this file into clipboard 9 and switch to next
+// window which should be the wordfile with the language to update.
+	Clipboard 9
+	SelectAll
+	Copy
+	EndSelect
+	Top
+	NextWindow
+
+// Delete all color and font style settings in the wordfile.
+	Top
+	Find MatchCase RegExp "%/Colors =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Back =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Auto Back =[ 01]+,[ 01]+,[ 01]+,[ 01]+,[ 01]+*^p/Font Style =[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+*^p"
+	Replace All ""
+	Find MatchCase RegExp " +Colors =[ 0-9]+Colors Back =[ 0-9]+Colors Auto Back =[ 01]+Font Style =[ 0-3]+?++$"
+	Replace All ""
+
+// Paste the content of the color scheme file into the wordfile and insert
+// an extra line to mark the end of this block with a special string.
+	Paste
+	"!SeTtInGsCoPyAlL1!
+	"
+	Top
+
+// Search for the lines containing the color and font style settings for
+// the standard color groups Normal Text, Comments, Alternate Comments,
+// Strings and Numbers, cut them to clipboard 9, set cursor to end of
+// the inserted block and use a regular expression replace command to
+// insert these 4 lines below every language definition line.
+
+	Find MatchCase RegExp "%/Colors =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Back =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Auto Back =[ 01]+,[ 01]+,[ 01]+,[ 01]+,[ 01]+*^p/Font Style =[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+*^p"
+	Cut
+	Find MatchCase "!SeTtInGsCoPyAlL1!"
+	Find MatchCase RegExp "%^(/L[1-9][0-9]++*File*^p^)"
+	Replace All "^1^c"
+	Top
+
+// Copy now the up to 20 color group settings from the color scheme
+// file to the color groups for the current language in the wordfile.
+
+	Loop 20
+// Search for the settings of a color group and exit loop if not found.
+		Find MatchCase RegExp "%/C[1-9][0-9]++* Colors =[ 0-9]+Colors Back =[ 0-9]+Colors Auto Back =[ 01]+Font Style =[ 0-3]+?++$"
+		IfNotFound
+			ExitLoop
+		EndIf
+// Copy the settings to clipboard 9 and insert at start of
+// this line a second marker string to remember the position.
+		EndSelect
+		Key HOME
+		Find MatchCase RegExp " Colors =[ 0-9]+Colors Back =[ 0-9]+Colors Auto Back =[ 01]+Font Style =[ 0-3]+?++$"
+		Copy
+		EndSelect
+		Key HOME
+		"!SeTtInGsCoPyAlL2!"
+// Search for the first marker string at start of the original wordfile
+// content downwards from the current cursor position. If not found,
+// the color settings were found in the wordfile content and not in
+// the settings block. In this case all color group settings are
+// already applied to the language(s) and the loop must be exited.
+		Find MatchCase "!SeTtInGsCoPyAlL1!"
+		IfFound
+			Find MatchCase Up "!SeTtInGsCoPyAlL2!"
+			Replace ""
+		Else
+			DeleteToStartofLine
+			ExitLoop
+		EndIf
+// Copy the color settings to all color group lines with the same color
+		Find MatchCase RegExp "/C[1-9][0-9]++"
+		Find MatchCase RegExp "%^(^s^)$"
+		Replace All "^1^c"
+		Find MatchCase RegExp "%^(^s[~0-9^p]?++^)$"
+		Replace All "^1^c"
+// Delete the line with the settings just copied to the color group(s).
+		DeleteLine
+	EndLoop
+
+// Delete now everything remaining from the copied block with the settings.
+// Normally nothing should be anymore between top of the file and the line
+// with the marker string.
+
+	Top
+	StartSelect
+	Find MatchCase Select "!SeTtInGsCoPyAlL1!^p"
+	Delete
+	EndSelect
+
+// Finally clear the used clipboard 9 and switch back the Windows clipboard.
+	ClearClipboard
+	Clipboard 0
+
+// Insert macro command UnixReOn or PerlReOn here at the end of the
+// macro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn
+
+
+// ***** SettingsCopyCur ***************************************************
+
+// This macro copies the color and font style settings stored in a separate
+// file for example with extension UESH (UltraEdit Syntax Highlighting color
+// scheme) created with macro SettingsExtract to the language the cursor is
+// currently set. Only 2 files should be open when running this script. The
+// active file contains the color and font style settings which should be
+// copied into the wordfile. The other file open is the wordfile for
+// UltraEdit v15.00 or UEStudio v9.10 or later and the cursor in this
+// wordfile should be at start or anywhere inside the syntax highlighting
+// language which should have the color scheme. It does not matter if
+// there are already color and font style settings in the wordfile for
+// the selected language. Existing color and font style settings are
+// automatically removed before copying the new color scheme using the
+// macro SettingsDelCur. To copy the color and font style settings to
+// all language definitions in a wordfile use the macro "SettingsCopyAll".
+
+// Macro "SettingsCopyCur" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+
+// First check if the current file contains a language color scheme in the
+// required format, created before for example with macro SettingsExtract.
+// This macro would also work with active file is a wordfile containing
+// 1 language with color settings. But it is recommended to work with a
+// file containing only the color settings of a language and not with an
+// entire wordfile.
+	Top
+	Find MatchCase RegExp "%/Colors =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Back =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Auto Back =[ 01]+,[ 01]+,[ 01]+,[ 01]+,[ 01]+*^p/Font Style =[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+*^p"
+	IfNotFound
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+
+// Make sure that the last line of the file has a line termination. It can
+// be expected that the last line in a color scheme file has no preceding
+// whitespace and therefore an enabled auto indent does not matter.
+	Bottom
+	IfColNum 1
+	Else
+	"
+	"
+	EndIf
+
+// Copy whole content of this file into clipboard 9 and switch to next
+// window which should be the wordfile with the language to update.
+	Clipboard 9
+	SelectAll
+	Copy
+	EndSelect
+	Top
+	NextWindow
+
+// Delete all color and font style settings in the wordfile for the
+// language the cursor is set and then check if the macro has exited
+// because no language definition was found.
+
+	PlayMacro 1 "SettingsDelCur"
+	Find MatchCase RegExp "%/L[1-9][0-9]++*File "
+	IfNotFound
+		ClearClipboard
+		Clipboard 0
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+	EndSelect
+	Key HOME
+
+// Insert at start of the language definition a special string which is
+// appended to the current clipboard content and which marks the position
+// between the block with the color settings and the language to update.
+// Then a line with another special marker string is inserted to mark the
+// position of the current language in the wordfile. Next the entire syntax
+// highlighting language is selected and cut with append to content in the
+// user clipboard 9. The cursor is moved to end of the file and there the
+// next line with a special marker string is inserted to mark the start
+// of the block with the copied settings. Finally the block with the color
+// and font style settings, the third marker string and the entire the
+// language is pasted.
+
+	"!SeTtInGsCoPyCuR3!"
+	StartSelect
+	Key HOME
+	CutAppend
+	"!SeTtInGsCoPyCuR1!
+	"
+	Key RIGHT ARROW
+	StartSelect
+	Find MatchCase RegExp Select "%/L[1-9][0-9]++*File "
+	IfSel
+		Key HOME
+	Else
+		SelectToBottom
+	EndIf
+	CutAppend
+	Bottom
+	"!SeTtInGsCoPyCuR2!
+	"
+	Paste
+
+// Search for the lines containing the color and font style settings for
+// the standard color groups Normal Text, Comments, Alternate Comments,
+// Strings and Numbers, cut them to clipboard 9, set cursor to start of
+// the line below the language definition and paste the 4 lines.
+
+	Find MatchCase Up "!SeTtInGsCoPyCuR2!"
+	Find MatchCase RegExp "%/Colors =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Back =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Auto Back =[ 01]+,[ 01]+,[ 01]+,[ 01]+,[ 01]+*^p/Font Style =[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+*^p"
+	Cut
+	Find MatchCase "!SeTtInGsCoPyCuR3!"
+	EndSelect
+	Key HOME
+	Key DOWN ARROW
+	Paste
+
+// Copy now the up to 20 color group settings from the color scheme
+// file to the color groups for the current language in the wordfile.
+
+// Set the cursor to start of the block from the color scheme file.
+	Find MatchCase Up "!SeTtInGsCoPyCuR2!"
+
+	Loop 20
+// Search for the settings of a color group and exit loop if not found.
+		Find MatchCase RegExp "%/C[1-9][0-9]++* Colors =[ 0-9]+Colors Back =[ 0-9]+Colors Auto Back =[ 01]+Font Style =[ 0-3]+?++$"
+		IfNotFound
+			ExitLoop
+		EndIf
+// Copy the settings to clipboard 9 and insert at start of
+// this line a fourth marker string to remember the position.
+		EndSelect
+		Key HOME
+		Find MatchCase RegExp " Colors =[ 0-9]+Colors Back =[ 0-9]+Colors Auto Back =[ 01]+Font Style =[ 0-3]+?++$"
+		Copy
+		EndSelect
+		Key HOME
+		"!SeTtInGsCoPyCuR4!"
+// Search for the third marker string at start of the language block
+// downwards from the current cursor position. If not found, the color
+// settings were found in the language block and not in the settings
+// block. In this case all color group settings are already applied
+// to the language and the loop must be exited.
+		Find MatchCase "!SeTtInGsCoPyCuR3!"
+		IfFound
+			Find MatchCase Up "!SeTtInGsCoPyCuR4!"
+			Replace ""
+		Else
+			DeleteToStartofLine
+			ExitLoop
+		EndIf
+// Copy the color settings to the color group using a regex replace.
+		Find MatchCase RegExp "/C[1-9][0-9]++"
+		Find MatchCase RegExp "%^(^s^)$"
+		Replace All "^1^c"
+		IfNotFound
+			Find MatchCase RegExp "%^(^s[~0-9^p]?++^)$"
+			Replace All "^1^c"
+		EndIf
+// Delete the line with the settings just copied to the color group.
+		DeleteLine
+	EndLoop
+
+// Delete now everything remaining from the initial copied block with
+// the settings. Normally nothing should be anymore between the 2 marker
+// strings.
+
+	Find MatchCase Up "!SeTtInGsCoPyCuR2!"
+	StartSelect
+	Find MatchCase Select "!SeTtInGsCoPyCuR3!"
+	Delete
+	EndSelect
+
+// Select the entire updated syntax highlighting language definition.
+	SelectToBottom
+	Cut
+	Find MatchCase Up "!SeTtInGsCoPyCuR1!"
+	Key HOME
+	Key DOWN ARROW
+	Key RIGHT ARROW
+	Paste
+	Find MatchCase Up "!SeTtInGsCoPyCuR1!^p"
+	Replace ""
+
+// Finally clear the used clipboard 9 and switch back the Windows clipboard.
+	ClearClipboard
+	Clipboard 0
+
+// Insert macro command UnixReOn or PerlReOn here at the end of the
+// macro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn
+
+// ***** SettingsCopyIni ***************************************************
+
+// This macro copies the color and font style settings for the current
+// language in a wordfile from an INI file, usually uedit32.ini or
+// uestudio.ini, to the wordfile. If the language in the wordfile has
+// already color and font style settings, they are removed completely
+// before applying the language related settings from the INI file. The
+// macro requires that an INI file with the sections [Language x Colors]
+// with x is 1 to 20 and a wordfile with one or more syntax highlighting
+// languages is open. Set the cursor to begin or anywhere inside a
+// language in the wordfile and run this macro to copy the settings for
+// this language according to the language number from the INI into the
+// wordfile. If the wordfile contains multiple languages, run this macro
+// once per language with setting the cursor always to start or anywhere
+// inside a language before running the macro.
+
+// Macro "SettingsCopyIni" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+
+// First check if the current file has the not case sensitive extension
+// INI. If this is the case, set focus to the next window because the
+// macro must start on the wordfile.
+	IfExtIs "ini"
+		NextWindow
+	EndIf
+
+// Set the cursor to end of current line and then search downwards for a
+// language definition line. If such a line is found, set the cursor to
+// start of the line which is the first line of the next language. Then
+// search upwards for the definition line of the language the cursor was
+// set on start of the macro. If that line could not be found, the current
+// file is not a wordfile and the macro exits without changing anything.
+
+	Key END
+	Find MatchCase RegExp "%/L[1-9][0-9]++*File "
+	IfFound
+		Key HOME
+	EndIf
+	Find MatchCase RegExp Up "%/L[1-9][0-9]++*File "
+	IfNotFound
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+
+// Set the cursor to start of the language definition line and select with
+// a regular expression search the language number which is copied into user
+// clipboard 9. Next select the entire line and copy it to user clipboard 8.
+
+	Key HOME
+	Clipboard 9
+	Find RegExp "[1-9][0-9]++"
+	Copy
+	Clipboard 8
+	SelectLine
+	Copy
+	EndSelect
+
+// In a loop search now in the list of open files for the INI file. Normally
+// only 2 files should be open, the wordfile and the INI file, and therefore
+// the loop should exit immediately after executing the first command.
+
+	Loop
+		NextWindow
+		IfExtIs "ini"
+			ExitLoop
+		EndIf
+// To avoid an endless loop in case of no file with extension INI is open,
+// set the cursor in every other file to top of the file and search for the
+// language definition line in clipboard 8. If this line is found, it must
+// be expected that initial wordfile has again the focus and therefore no
+// INI file is open. In this case clear the used clipboards, activate the
+// Windows clipboard and exit the macro.
+		Top
+		Find MatchCase "^c"
+		IfFound
+			ClearClipboard
+			Clipboard 9
+			ClearClipboard
+			Clipboard 0
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//			UnixReOn
+//			PerlReOn
+			ExitMacro
+		EndIf
+	EndLoop
+
+// An INI file is found. Set the cursor to top of the file and select with
+// a regular expression search the entire section with the color and font
+// style settings for the language number in clipboard 9. If the section
+// for the language number could not be found, restore the environment
+// and exit the macro before modifying anything.
+
+	Clipboard 9
+	Top
+	Find MatchCase RegExp "%^[Language ^c Colors]?++^p?+^p?+^p?+^p?+^p"
+	IfFound
+		Copy
+		Clipboard 8
+	Else
+		ClearClipboard
+		Clipboard 8
+		ClearClipboard
+		Clipboard 0
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+
+// In a loop search now for the initial wordfile containing the language
+// definition line in clipboard 8. Normally only 2 files should be open,
+// the wordfile and the INI file, and therefore the loop should exit
+// immediately. But this and the previous loop make it is possible to have
+// more files open. Clipboard 8 is no longer needed when the file is found
+// and therefore its content is cleared before switching to the clipboard 9
+// containing the language settings for the current language.
+
+	Loop
+		NextWindow
+		Top
+		Find MatchCase "^c"
+		IfFound
+			ClearClipboard
+			Clipboard 9
+			ExitLoop
+		EndIf
+	EndLoop
+
+// Because the entire language definition line including line ending was
+// selected before, the cursor is after the search at start of the line
+// below the definition line. Move the cursor up and once right and insert
+// there after the slash character the marker string StArT. Further select
+// the entire block of the language and insert at start of every color group
+// of that language the marker string CoLoR. This is done in case of the
+// wordfile contains multiple languages. The macro should work only on the
+// current language in this wordfile and the marker strings help to achieve
+// this.
+
+	Key UP ARROW
+	Key RIGHT ARROW
+	"StArT"
+	StartSelect
+	Find MatchCase RegExp Select "%/L[1-9][0-9]++*File "
+	IfSel
+		Key HOME
+	Else
+		SelectToBottom
+	EndIf
+	Find MatchCase RegExp "%^(/C[1-8]^)"
+	Replace All SelectText "CoLoR^1"
+	EndSelect
+
+// Now move to top of the file and remove with a single replace all command
+// using the UltraEdit regular expression engine the color and font style
+// settings of every marked color group.
+
+	Top
+	Find MatchCase RegExp "%^(CoLoR*^) Colors =[ 0-9]+Colors Back =[ 0-9]+Colors Auto Back =[ 01]+Font Style =[ 0-3]+?++$"
+	Replace All "^1"
+
+// Second the color and font style settings at top of the marked language
+// for the standard color groups Normal Text, Comments, Alternate Comments,
+// Strings and Numbers are deleted with a replace all command using again
+// the UltraEdit regular expression engine.
+
+	Find MatchCase RegExp "%^(/StArT?+^p^)/Colors =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Back =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Auto Back =[ 01]+,[ 01]+,[ 01]+,[ 01]+,[ 01]+*^p/Font Style =[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+*^p"
+	Replace All "^1"
+
+// The cursor is still at top of the file. Paste there the language settings
+// section from the INI file. Reselect that block and remove all spaces in
+// this block to make the further searches and replaces easier.
+
+	Paste
+	SelectToTop
+	Find MatchCase " "
+	Replace All SelectText ""
+
+// The first line containing originally [Language x Colors]
+// is of no need anymore and is therefore deleted.
+	Top
+	DeleteLine
+
+// Search for the line containing the foreground colors and delete the not
+// needed keyword. Then select the first 5 color values and the commas and
+// cut them to clipboard 9. With a regular expression replace all search for
+// the marked language definition line and in one step delete the marker
+// string from that line, keep the rest of the line (= restore original
+// line) and insert below the line with the foreground color settings for
+// the 5 standard color groups with an additional new marker string used
+// at end of the macro to position the cursor to start of the updated
+// language. The other marker string is inserted at start of the inserted
+// line for inserting the next 3 lines with color and font style settings
+// at the correct position.
+
+	Find MatchCase RegExp "%Colors="
+	Replace ""
+	Find RegExp "^([0-9]+,[0-9]+,[0-9]+,[0-9]+,[0-9]+,^)"
+	Cut
+	Find MatchCase RegExp "%/StArT^(?+^p^)"
+	Replace All "MaRkEd/^1StArT/Colors = ^c^p"
+
+// The cursor is still on the line with the remaining 8 foreground color
+// values from the INI file. Because the order of the lines in INI files
+// is not fixed, select the line with the 8 foreground color values, cut
+// it and paste the line at top of the file.
+
+	SelectLine
+	Cut
+	Top
+	Paste
+
+// The next line in the wordfile should be the one with the background color
+// settings. Therefore search from start of line 2 for the line containing
+// these color values, delete the not needed keyword and select the first
+// 5 color values. Then use again a replace all command to insert these
+// values with correct definition below the marked line with moving the
+// marker string to the inserted line.
+
+	Find MatchCase RegExp "%ColorsBack="
+	Replace ""
+	Find RegExp "^([0-9]+,[0-9]+,[0-9]+,[0-9]+,[0-9]+,^)"
+	Cut
+	Find MatchCase RegExp "%StArT^(?+^p^)"
+	Replace All "^1StArT/Colors Back = ^c^p"
+
+// The cursor is still on the line with the remaining 8 background color
+// values from the INI file. Because the order of the lines in INI files
+// is not fixed, select the line with the 8 background color values, cut
+// it and paste the line at start of line 2. GotoLine command is not used
+// to avoid macro compatibility problems.
+
+	SelectLine
+	Cut
+	Top
+	Key DOWN ARROW
+	Paste
+
+// The same procedure as before is used now for moving the background color
+// automatic settings for the 5 standard color groups to the language and
+// the remaining 8 background color automatic settings to start of line 3.
+	Find MatchCase RegExp "%ColorsAutoBack="
+	Replace ""
+	Find RegExp "^([01],[01],[01],[01],[01],^)"
+	Cut
+	Find MatchCase RegExp "%StArT^(?+^p^)"
+	Replace All "^1StArT/Colors Auto Back = ^c^p"
+	SelectLine
+	Cut
+	Top
+	Key DOWN ARROW
+	Key DOWN ARROW
+	Paste
+
+// And nearly the same procedure as before is used now for moving the font
+// style settings for the 5 standard color groups to the language. With the
+// replace the marker string is removed which marked the lines where the 4
+// inserted lines are inserted below because not needed anymore. The line
+// containing now the remaining 8 font style settings is already the 4th
+// line in the wordfile.
+
+	Find MatchCase RegExp "%FontStyle="
+	Replace ""
+	Find RegExp "^([0-3],[0-3],[0-3],[0-3],[0-3],^)"
+	Cut
+	Find MatchCase RegExp "%StArT^(?+^p^)"
+	Replace All "^1/Font Style = ^c^p"
+	Top
+
+// At top of the wordfile are now the lines with the settings for the
+// 8 color groups. They must be transformed into the syntax required for
+// the wordfile. The replace command in the loop executed 8 times makes
+// this transformation. The search command tags 7 strings from the 4 lines -
+// the first value of every line and everything right the comma after the
+// first value of the line in the first 3 lines. The replace inserts a line
+// with the correct keywords with the first values of the 4 lines with the
+// settings and the remaining parts of the first 3 lines are just kept. The
+// next search with the 2 cursor moving commands just position the cursor
+// after the transformation replace to start of the 4 lines with the
+// remaining settings for the other color groups.
+
+	Loop 8
+		Find RegExp "^([0-9]+^),^(?++^p^)^([0-9]+^),^(?++^p^)^([01]^),^(?++^p^)^([0-3]^),"
+		Replace "Colors = ^1 Colors Back = ^3 Colors Auto Back = ^5 Font Style = ^7^p^2^4^6"
+		Find MatchCase Up "Colors = "
+		Key HOME
+		Key DOWN ARROW
+	EndLoop
+
+// After the loop above there are at top of the wordfile now 8 lines with
+// settings for the 8 color groups of the language and 4 now empty lines.
+// The 4 empty lines are not needed anymore and therefore deleted. For
+// security this is not done with a single replace command, but using
+// the delete line command in a loop in case something is still in the
+// 4 remaining lines.
+
+	Loop 4
+		DeleteLine
+	EndLoop
+
+// Back at top of the file the 8 lines with the color group settings must be
+// moved to the up to 8 marked color groups of the language anywhere below.
+// This is done by selecting one line after the other, cut it to clipboard 9
+// and use a replace command to delete the color group marker and append the
+// line in the clipboard with the settings at end of the marked color group
+// line.
+
+	Top
+	SelectLine
+	Cut
+	Find MatchCase RegExp "%CoLoR^(/C1?++^)^p"
+	Replace All "^1 ^c"
+	SelectLine
+	Cut
+	Find MatchCase RegExp "%CoLoR^(/C2?++^)^p"
+	Replace All "^1 ^c"
+	SelectLine
+	Cut
+	Find MatchCase RegExp "%CoLoR^(/C3?++^)^p"
+	Replace All "^1 ^c"
+	SelectLine
+	Cut
+	Find MatchCase RegExp "%CoLoR^(/C4?++^)^p"
+	Replace All "^1 ^c"
+	SelectLine
+	Cut
+	Find MatchCase RegExp "%CoLoR^(/C5?++^)^p"
+	Replace All "^1 ^c"
+	SelectLine
+	Cut
+	Find MatchCase RegExp "%CoLoR^(/C6?++^)^p"
+	Replace All "^1 ^c"
+	SelectLine
+	Cut
+	Find MatchCase RegExp "%CoLoR^(/C7?++^)^p"
+	Replace All "^1 ^c"
+	SelectLine
+	Cut
+	Find MatchCase RegExp "%CoLoR^(/C8?++^)^p"
+	Replace All "^1 ^c"
+
+// The job for this macro is done. With a single replace command the cursor
+// is moved to start of the language just updated and the marker string is
+// removed. Next clipboard 9 is cleared and finally the Windows clipboard
+// is selected before exiting the macro.
+
+	Find MatchCase RegExp "%MaRkEd"
+	Replace ""
+	ClearClipboard
+	Clipboard 0
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn
+
+// ***** SettingsDelAll ****************************************************
+
+// This macro deletes the color and font style settings stored by
+// UltraEdit v15.00 and UEStudio v9.10 and later in the wordfile for
+// every language definition. This macro deletes the color and font style
+// settings of ALL language definitions in the current wordfile. To delete
+// the color and font style settings of only 1 language definition in a
+// wordfile with several languages use the macro "SettingsDelCur".
+
+// Macro "SettingsDelAll" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+	Top
+
+// First the color and font style settings of every color group are removed
+// with a single replace all command using the UltraEdit regular expression
+// engine.
+	Find MatchCase RegExp " +Colors =[ 0-9]+Colors Back =[ 0-9]+Colors Auto Back =[ 01]+Font Style =[ 0-3]+?++$"
+	Replace All ""
+
+// Second the color and font style settings at top of the languages for the
+// standard color groups Normal Text, Comments, Alternate Comments, Strings
+// and Numbers are deleted with a replace all command using the UltraEdit
+// regular expression engine too.
+	Find MatchCase RegExp "%/Colors =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Back =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Auto Back =[ 01]+,[ 01]+,[ 01]+,[ 01]+,[ 01]+*^p/Font Style =[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+*^p"
+	Replace All ""
+
+// Insert macro command UnixReOn or PerlReOn here at the end of the
+// macro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn
+
+
+// ***** SettingsDelCur ****************************************************
+
+// This macro deletes the color and font style settings stored by
+// UltraEdit v15.00 and UEStudio v9.10 and later in the wordfile for
+// every language definition. If the current wordfile contains several
+// language definitions this macro deletes the color and font style
+// settings only for the language the cursor is currently set. To delete
+// the color and font style settings of all language definitions at once
+// in a wordfile use the macro "SettingsDelAll".
+
+// Macro "SettingsDelCur" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+
+// Set cursor to the end of the current line and check if it is a blank
+// line or a line which only contains spaces, tabs and form feeds which
+// are removed with a loop solution. If the current line is a blank line,
+// the cursor is set in a loop to the end of the next line until either
+// a non-blank line is found or the end of the file is reached.
+
+	Loop
+		Key END
+		IfEof
+			ExitLoop
+		EndIf
+		IfColNum 1
+			Key DOWN ARROW
+		Else
+			Key LEFT ARROW
+			IfCharIs 32
+				Key DEL
+			Else
+				IfCharIs 9
+					Key DEL
+				Else
+					IfCharIs 12
+						Key DEL
+					Else
+						ExitLoop
+					EndIf
+				EndIf
+			EndIf
+		EndIf
+	EndLoop
+
+// Find start of current language definition and exit macro if not found.
+// The cursor is set to the end of the current line before searching down
+// to next language definition. This makes sure that if cursor is already
+// at start of the language definition, not the wrong language definition
+// is later selected. If next language definition is found, set cursor
+// back at start of this language definition line. Now search up for the
+// language definition and if found set the cursor to start of this line.
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+
+	Find MatchCase RegExp "%/L[1-9][0-9]++*File "
+	IfFound
+		Key HOME
+	EndIf
+	Find MatchCase RegExp Up "%/L[1-9][0-9]++*File "
+	IfNotFound
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+	EndSelect
+	Key HOME
+
+// Insert at start of the language definition a special string to mark it.
+	"!SeTtInGsDeLcUr!"
+
+// Select the entire language definition by selecting everything to
+// next language definition in this wordfile or to end of this file.
+	StartSelect
+	Find MatchCase RegExp Select "%/L[1-9][0-9]++*File "
+	IfSel
+		Key HOME
+	Else
+		SelectToBottom
+	EndIf
+
+// First the color and font style settings of every color group are removed
+// with a single replace all command using the UltraEdit regular expression
+// engine.
+	Find MatchCase RegExp " +Colors =[ 0-9]+Colors Back =[ 0-9]+Colors Auto Back =[ 01]+Font Style =[ 0-3]+?++$"
+	Replace All SelectText ""
+
+// Unfortunately the selected area has changed. Therefore the whole language
+// definition must be selected again for the following deletions of the
+// other color and font style settings. Selecting just the upper part to
+// first color group could fail in case of a language definition without
+// any color group. Such language definitions are rare, but they exist.
+	EndSelect
+	Key END
+	Find MatchCase Up "!SeTtInGsDeLcUr"
+	EndSelect
+	Key RIGHT ARROW
+	StartSelect
+	Find MatchCase RegExp Select "%/L[1-9][0-9]++*File "
+	IfSel
+		Key HOME
+	Else
+		SelectToBottom
+	EndIf
+
+// Second the color and font style settings at top of the languages for the
+// standard color groups Normal Text, Comments, Alternate Comments, Strings
+// and Numbers are deleted with a replace all command using the UltraEdit
+// regular expression engine too.
+	Find MatchCase RegExp "%/Colors =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Back =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Auto Back =[ 01]+,[ 01]+,[ 01]+,[ 01]+,[ 01]+*^p/Font Style =[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+*^p"
+	Replace All SelectText ""
+
+// Finally move cursor back to top of the language definition
+// marked by the special string and delete that string.
+	EndSelect
+	Key END
+	Find MatchCase Up "!SeTtInGsDeLcUr!"
+	Replace ""
+
+// Insert macro command UnixReOn or PerlReOn here at the end of the
+// macro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn
+
+
+// ***** SettingsExtract ***************************************************
+
+// UltraEdit v15.00 and UEStudio v9.10 and later store the color and font
+// style settings for a language in the wordfile instead of the INI file.
+// This macro copies the color and font style settings of the current
+// wordfile into a new file. You can save the file for example with
+// extension UESH (UltraEdit Syntax Highlighting color scheme) automatically
+// (see comments below) or manually and use it as color scheme template for
+// other wordfiles. The cursor must be set at start or anywhere inside the
+// language definition of the language of which the settings should be
+// extracted.
+
+// Macro "SettingsExtract" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+
+// First move the cursor to start of the current language definition.
+// Search for the lines containing the color and font style settings for
+// the standard color groups Normal Text, Comments, Alternate Comments,
+// Strings and Numbers with a replace all command using the UltraEdit
+// regular expression engine. If such a block is not found exit the macro
+// because that file does not contain the syntax highlighting language
+// color and font style settings in the expected format. Otherwise the
+// found block with the settings is copied into user clipboard 9.
+
+	Key END
+	Find RegExp Up "%/L[0-9]"
+	Find MatchCase RegExp "%/Colors =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Back =[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+,[ 0-9]+*^p/Colors Auto Back =[ 01]+,[ 01]+,[ 01]+,[ 01]+,[ 01]+*^p/Font Style =[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+,[ 0-3]+*^p"
+	IfNotFound
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+	Clipboard 9
+	Copy
+
+// Select the entire language definition by selecting everything to
+// next language definition in this wordfile or to end of this file.
+	EndSelect
+	Key HOME
+	Key DOWN ARROW
+	StartSelect
+	Find MatchCase RegExp Select "%/L[1-9][0-9]++*File "
+	IfSel
+		Key HOME
+	Else
+		SelectToBottom
+	EndIf
+
+// Now the whole rest of the language definition is appended to the general
+// settings block. This is necessary for wordfiles containing more than
+// 1 language because the color group specific settings should be only
+// extracted from the current language. The cursor in the current wordfile
+// is moved to start of the language definition.
+	CopyAppend
+	EndSelect
+	Key UP ARROW
+	Find RegExp Up "%/L[0-9]"
+	Key HOME
+	NewFile
+	UnixMacToDos
+// Enable the following command if configuration setting "Always create
+// new files as UNICODE" is enabled. That command requires UE v10.20 or
+// later. That is the reason why it is not enabled by default.
+//	UnicodeToASCII
+	Paste
+	Top
+
+// In the new file find now the color group settings and collect them
+// in user clipboard 9.
+	ClearClipboard
+	Loop 20
+		Find MatchCase RegExp "%/C[1-9][0-9]++*Colors =[ 0-9]+Colors Back =[ 0-9]+Colors Auto Back =[ 01]+Font Style =[ 0-3]+?++^p"
+		IfFound
+			CutAppend
+		Else
+			ExitLoop
+		EndIf
+	EndLoop
+
+// Move cursor to start of the line below the general color settings using
+// old method with cursor movement by key command instead of GotoLine for
+// downward compatibility, select everything to end of the file, delete
+// that block and insert the lines with the color group settings.
+	Top
+	Loop 4
+		Key DOWN ARROW
+	EndLoop
+	SelectToBottom
+// The delete is necessary if the clipboard is empty because the language
+// contains no color group which is possible although very rare.
+	Delete
+	Paste
+
+// Delete the color group names and the style keywords if present.
+	Top
+	Find MatchCase RegExp "%^(/C[1-9][0-9]++^)*^(Colors =[ 0-9]+Colors Back^)"
+	Replace All "^1 ^2"
+
+// Enable the following lines if you want to save the file with the
+// color and font style settings automatically with the same name
+// as the wordfile with the file extension UESH.
+//	NextWindow
+//	CopyFilePath
+//	PreviousWindow
+//	Paste
+//	StartSelect
+//	Find Up Select "."
+//	".uesh"
+//	SelectToTop
+//	Cut
+//	SaveAs "^c"
+
+// Finally clear the used clipboard 9 and switch back to Windows clipboard.
+	ClearClipboard
+	Clipboard 0
+
+// Insert macro command UnixReOn or PerlReOn here at the end of the
+// macro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn
+
+
+// ***** SplitToWordfiles **************************************************
+
+// UltraEdit v15.00 and UEStudio v9.10 and later are reading by default
+// for new installations the syntax highlighting languages definitions
+// from files *.uew in a specified wordfiles directory. The default
+// directory for wordfiles is a subdirectory named "wordfiles" in the
+// directory of the used INI file which is by default uedit32.ini stored
+// in %appdata%\IDMComp\UltraEdit\ or %appdata%\IDMComp\UEStudio\. The
+// wordfiles contain typically only 1 language definition per file. But
+// for compatibility after an upgrade UE and UES can still read wordfiles
+// with several languages like former standard wordfile.txt or wordfile.uew.
+
+// This macro can be used to split up a wordfile with several languages into
+// several wordfiles with 1 language per wordfile. The macro does not save
+// all the created wordfiles. It just creates new files with 1 language per
+// file copied from the current wordfile on start of the macro. You have to
+// save those wordfiles you really use into a directory with "uew" as file
+// extension and specify this directory in the configuration dialog for
+// syntax highlighting.
+
+// Macro "SplitToWordfiles" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+
+// Contains the current file a syntax highlighting language definition?
+	Top
+	Find MatchCase RegExp "%/L[1-9][0-9]++*File "
+	IfNotFound
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+
+// Copy whole content of this wordfile into a new file.
+	Clipboard 9
+	SelectAll
+	Copy
+	EndSelect
+	Top
+	NewFile
+	UnixMacToDos
+// Enable the following command if configuration setting "Always create
+// new files as UNICODE" is enabled. That command requires UE v10.20 or
+// later. That is the reason why it is not enabled by default.
+//	UnicodeToASCII
+
+// Make sure that the last line of the file has a line termination. It
+// can be expected that the last line in a wordfile has no preceding
+// whitespace and therefore an enabled auto indent does not matter.
+	Paste
+	IfColNum 1
+	Else
+	"
+	"
+	EndIf
+
+// Delete all trailing spaces and tabs and delete all blank lines.
+	Top
+	TrimTrailingSpaces
+	Loop
+		Find "^p^p"
+		Replace All "^p"
+		IfNotFound
+			ExitLoop
+		EndIf
+	EndLoop
+
+// If the first line in the wordfile is a blank line, delete it too.
+	Key END
+	IfColNum 1
+		Delete
+		Key END
+	EndIf
+
+// Now the main task follows, executed in a loop. Search from end of the
+// current language definition line for the start of the next definition
+// line. If there is no such line anymore, exit the loop because all
+// languages are copied into separate new files. Otherwise select everything
+// from start of the found language definition line to end of the file, cut
+// it, paste it into a new file and move the cursor to end of the first
+// line which is the language definition line for that wordfile.
+
+	Loop
+		Find MatchCase RegExp "%/L[1-9][0-9]++*File "
+		IfNotFound
+			ExitLoop
+		EndIf
+		EndSelect
+		Key HOME
+		SelectToBottom
+		Cut
+		Top
+		NewFile
+		UnixMacToDos
+// Enable the following command if configuration setting "Always create
+// new files as UNICODE" is enabled. That command requires UE v10.20 or
+// later. That is the reason why it is not enabled by default.
+//		UnicodeToASCII
+		Paste
+		Top
+		Key END
+	EndLoop
+
+// Finally clear the used clipboard 9 and switch back the Windows clipboard.
+	Top
+	ClearClipboard
+	Clipboard 0
+
+// Insert macro command UnixReOn or PerlReOn here at the end of the
+// macro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn
+
+
+// ***** TestForDuplicate **************************************************
+
+// Macro "TestForDuplicate" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+// The code for selecting the whole language definition at the current
+// cursor position is identical with the macro SortLanguage. So look
+// at the explanation for the macro SortLanguage for this code part.
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+	Loop
+		Key END
+		IfEof
+			ExitLoop
+		EndIf
+		IfColNum 1
+			Key DOWN ARROW
+		Else
+			Key LEFT ARROW
+			IfCharIs 32
+				Key DEL
+			Else
+				IfCharIs 9
+					Key DEL
+				Else
+					IfCharIs 12
+						Key DEL
+					Else
+						ExitLoop
+					EndIf
+				EndIf
+			EndIf
+		EndIf
+	EndLoop
+	Find MatchCase RegExp "%/L[1-9][0-9]++*File "
+	IfFound
+		Key HOME
+	EndIf
+	Find MatchCase RegExp Up "%/L[1-9][0-9]++*File "
+	IfNotFound
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+	Key HOME
+	Key RIGHT ARROW
+	StartSelect
+	Find MatchCase RegExp Select "%/L[1-9][0-9]++*File "
+	IfSel
+		Key HOME
+	Else
+		SelectToBottom
+	EndIf
+	Clipboard 9
+	Copy
+	EndSelect
+
+// After copying the whole language definition to clipboard 9 the cursor
+// should be placed at start of the just copied language definition.
+// This should be possible with a single regular expression search in up
+// direction. But the first search fails if the language definition was
+// selected with command SelectToBottom on my very slow Pentium 166 MHz
+// computer with Win95. I was not able to find the reason for this strange
+// effect. So the search is executed twice if the first one does not work.
+
+	Key HOME
+	Find MatchCase RegExp Up "%/L[1-9][0-9]++*File "
+	IfNotFound
+		Find MatchCase RegExp Up "%/L[1-9][0-9]++*File "
+	EndIf
+	EndSelect
+	Key HOME
+
+// Next the language definition is copied to a temporary DOS file and the
+// trailing spaces and all blank lines are removed. Then it adds a single
+// empty line at end of the file if the last line is already terminated
+// with a line break or adds 2 line breaks, if the last line is not
+// terminated with a line break. The 2 blank lines at the end of the file
+// are necessary for correct handling the words of the last color group.
+
+	NewFile
+	UnixMacToDos
+	Paste
+	Top
+	TrimTrailingSpaces
+	Loop
+		Find "^p^p"
+		Replace All "^p"
+		IfNotFound
+			ExitLoop
+		EndIf
+	EndLoop
+	Bottom
+	IfColNum 1
+	"
+	"
+	Else
+	"
+	
+	"
+	EndIf
+
+// Add missing '/' at start of the language definition line and set cursor
+// back to top of file before searching for the language definition keyword
+// Nocase. Because the macro language does not support variables, the first
+// line is used temporary for information storage for the Nocase parameter.
+
+	Top
+	"/"
+	Key LEFT ARROW
+	Find MatchCase RegExp "%/L[1-9][0-9]++*Nocase"
+	IfFound
+		Top
+	"1...Nocase
+	"
+	Else
+		Top
+	"0...Nocase
+	"
+	EndIf
+
+// Next the whole block from start of the language definition line to the
+// first color group specification is selected and deleted. If no selection
+// is present after the find command, the current language definition does
+// not have words in any color group and so nothing is to do for this macro.
+
+	StartSelect
+	Find MatchCase RegExp Select "%/C[1-9][0-9]++"
+	IfSel
+		Key HOME
+		Delete
+		EndSelect
+	Else
+		EndSelect
+		CloseFile NoSave
+		ClearClipboard
+		Clipboard 0
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+
+// Lines with words starting with a '/' must start with "// " because the
+// lines with language definition keywords also start with '/'. For this
+// macro the escape string "// " at start of the lines must be removed.
+// And this macro needs a second temp file which is created now once
+// before it is used in the following loops.
+
+	Find RegExp "%// "
+	Replace All ""
+	NewFile
+	UnixMacToDos
+	NextWindow
+
+// For substrings a special handling is required. First substrings must
+// be marked to later handle it correct. So the following loop searches
+// for lines with substrings, copies each line to the second temp file
+// and reformats each substring line for example from
+// ** # p_x w_        to        **# **p_x **w_
+// The ** before the substring is the substring marker. This modified
+// substring line is copied back and replaces the original substring line.
+// Note: If the language definition contains normal words with ** at start
+// of the word they will be later by mistake also interpreted as substrings.
+// But I guess, normal words starting with ** are very rare.
+
+	Loop
+		Find RegExp "%^*^* "
+		IfFound
+			SelectLine
+			Copy
+			PreviousWindow
+			Paste
+			Top
+			Key DEL
+			Key DEL
+			Find RegExp "[ ^t]+"
+			Replace All " **"
+			Key DEL
+			SelectAll
+			Cut
+			NextWindow
+			Paste
+		Else
+			ExitLoop
+		EndIf
+	EndLoop
+
+// Now every word or substring of a color group must be placed on a line
+// with the additional information to which color group the word/substring
+// belongs to. So in a loop with maximum 20 runs (because of a maximum of
+// 20 color groups) search for the color group specification line. If the
+// next such line is found, it is moved to the second temp file. There
+// the macro extracts only the first part of the specification with the
+// color number and the name if completely specified. A style keyword or
+// an invalid name specification (missing second ") is ignored. This
+// important part for identification of the color group is copied to
+// current clipboard 9.
+
+	Top
+	Loop 20
+		Find MatchCase RegExp "%/C[1-9][0-9]++"
+		IfNotFound
+			ExitLoop
+		EndIf
+		SelectLine
+		Cut
+		PreviousWindow
+		Paste
+		Top
+		Key RIGHT ARROW
+		Key RIGHT ARROW
+		Key RIGHT ARROW
+		IfCharIs "0123456789"
+		Key RIGHT ARROW
+		EndIf
+		IfCharIs """
+			Key RIGHT ARROW
+			Find """
+			IfFound
+				EndSelect
+				Key LEFT ARROW
+				Key RIGHT ARROW
+			Else
+				Key LEFT ARROW
+			EndIf
+		EndIf
+		StartSelect
+		Key HOME
+		Cut
+		EndSelect
+		SelectLine
+		Delete
+
+// Back at first temp file the whole block of words/substrings of the
+// current color group to next color group specification or the end
+// of the file is copied to the second temp file. It's also possible
+// that the current color group does not contain any word/substring
+// and so nothing is to do here for the current color group. Because
+// clipboard 9 already contains the color group identification string
+// clipboard 8 is used for copying the words/substrings.
+
+		NextWindow
+		Find MatchCase RegExp Select "%/C[1-9][0-9]++"
+		IfNotFound
+			Find MatchCase RegExp Select "^p$"
+		EndIf
+		StartSelect
+		Key HOME
+		EndSelect
+		IfSel
+			Clipboard 8
+			Copy
+			PreviousWindow
+			Paste
+
+// The lines with the words and already reformatted substrings of the
+// current color group are splitted up to 1 word per line. Before every word
+// at every line the string "WORD_FROM_LANGDEF=" is inserted. This special
+// string is a marker for start of the line because a regular expression
+// search with % cannot be used later during the search for duplicates in
+// the macros FindDupCase and FindDupNocase. These 2 macros uses ^c for
+// the search for the word/substring and the clipboard content inserted
+// into the search string with ^c is interpreted also as regular expression
+// and not as normal ASCII string if ^c is used in an UltraEdit style
+// regular expression string. So a regular expression search is later
+// not possible because searching for words which contain UltraEdit style
+// regular expression characters would fail. The workaround is to use a
+// special string as marker for the start of the line and use this special
+// string later also in the normal search. After the word or substring the
+// color group identification with the additional " -> in" string for better
+// reading the report is also added to the every line. The reformatted block
+// of words is moved back to first temp file and replaces there the still
+// selected word block.
+
+			Clipboard 9
+			Top
+			Find RegExp "[ ^t]+"
+			Replace All "^p"
+			Find RegExp "%^([~^p]+^)"
+			Replace All "WORD_FROM_LANGDEF=^1 -> in ^c"
+			SelectAll
+			Cut
+			NextWindow
+			Paste
+		EndIf
+	EndLoop
+
+// The first temp file now contains at top the Nocase information and at
+// every line 1 word/substring with the special start of line marker string
+// and the color group identification. One of the two blank lines at bottom
+// of the file is not needed anymore and so one blank line is here deleted.
+// Clipboard 9 is cleared to be ready for the lines for the final report.
+
+	Bottom
+	Key UP ARROW
+	Key DEL
+	ClearClipboard
+
+// The search for duplicates is later always executed from the current file
+// position to the end of the file and not always from top of the file. This
+// improves speed. Normal words are searched automatically like using search
+// option MatchWord although this option is not used. So there is no problem
+// with different normal words which starts with the same characters. But
+// the search for substring matches is different. Substrings starting with
+// the same characters must be found and reported. If you look at the
+// language definition example above with "p_x" at color 1 and "p_" at
+// color 2, the search for substring "p_" would not find the line with
+// "p_x" because the line with "p_x" is above the line with "p_". So it
+// is necessary to sort the lines with the substring according to the
+// length of the substring. This is done with the following code block
+// where every line with a substring is cut from the first temp file and
+// collected in clipboard 8. After collecting all lines with a substring
+// (if there are such lines) these lines are pasted into the second temp
+// file and sorted with ignoring the case because only the substring length
+// is important. The sorted substring lines are inserted at top of the first
+// temp file below the Nocase info line and the second temp file is closed
+// because it is not needed anymore. On my very slow Pentium 166 MHz
+// computer with Win95 the first search for a substring line always fails
+// here after moving the cursor from the end to top of the file. The search
+// was always executed anywhere from the middle of the file. So I force UE
+// by inserting a space at top of the file and immediately deleting it to
+// wait before first search until the cursor is really at top of the file.
+
+	Clipboard 8
+	ClearClipboard
+	Top
+	" "
+	Key BACKSPACE
+	Loop
+		Find MatchCase RegExp "WORD_FROM_LANGDEF=^*^**^p"
+		IfFound
+			CutAppend
+		Else
+			ExitLoop
+		EndIf
+	EndLoop
+	PreviousWindow
+	Paste
+	Top
+	IfEof
+		CloseFile NoSave
+	Else
+		SortAsc IgnoreCase 1 -1 0 0 0 0 0 0
+		SelectAll
+		Copy
+		EndSelect
+		CloseFile NoSave
+		Top
+		Key DOWN ARROW
+		Paste
+	EndIf
+
+// All preparations for searching for duplicate words and matching
+// substrings are finished. Now the search for duplicates can be executed
+// according to the Nocase info still available at top of the temp file.
+// This information is here only evaluated once and according to the setting
+// one of the two nearly identical loops is executed. The only difference
+// in the else branch is playing the submacro FindDupCase instead of
+// submacro FindDupNocase if the Nocase keyword was not present at the
+// language definition line. This method with the 2 nearly identical loop
+// code blocks is faster than evaluating the Nocase info within a single
+// loop before calling the appropriate submacro at every line.
+// The loop exit is executed when the last line of the file which must be
+// always terminated with a CR/LF was tested. At every line all characters
+// from the start of the line to first space after the word or substring
+// from the language definition is selected. For normal words the space
+// is still selected when the string is copied to clipboard 8. This has
+// the MatchWord effect for the search in the submacros. If currently a
+// substring is selected, the space is removed from the selection and so
+// substrings are automatically not searched with the MatchWord effect.
+// After selecting and copying the current search string to clipboard 8
+// the next line is bookmarked before the submacro is called. This bookmark
+// is removed after the submacro has finished and the whole procedure is
+// once again executed on the current line if the end of the file is not
+// already reached.
+
+	Top
+	IfCharIs "1"
+		Key DOWN ARROW
+		Loop
+			IfEof
+				ExitLoop
+			EndIf
+			StartSelect
+			Find Select " "
+			Find MatchCase "WORD_FROM_LANGDEF=**"
+			Replace All SelectText "WORD_FROM_LANGDEF=**"
+			IfFound
+				Key LEFT ARROW
+			EndIf
+			Copy
+			EndSelect
+			Key HOME
+			Key DOWN ARROW
+			ToggleBookmark
+			PlayMacro 1 "FindDupNocase"
+			ToggleBookmark
+		EndLoop
+	Else
+		Key DOWN ARROW
+		Loop
+			IfEof
+				ExitLoop
+			EndIf
+			StartSelect
+			Find Select " "
+			Find MatchCase "WORD_FROM_LANGDEF=**"
+			Replace All SelectText "WORD_FROM_LANGDEF=**"
+			IfFound
+				Key LEFT ARROW
+			EndIf
+			Copy
+			EndSelect
+			Key HOME
+			Key DOWN ARROW
+			ToggleBookmark
+			PlayMacro 1 "FindDupCase"
+			ToggleBookmark
+		EndLoop
+	EndIf
+
+// After finishing the test for duplicates clipboard 8 can be cleared and
+// also everything of the temp file can be deleted. Then the content of
+// clipboard 9 is pasted into the temp file and clipboard 9 is also cleared.
+// If at least one line was in the clipboard 9 because of a duplicate word
+// or a matching substring the temp file is not empty now. According to
+// found or not found duplicate words or matching substrings the final
+// report layout is created and the cursor is set to top of the report
+// and the user can evaluate it now.
+
+	ClearClipboard
+	SelectAll
+	Delete
+	Clipboard 9
+	Paste
+	ClearClipboard
+	Top
+	IfEof
+		"Congratulations! No duplicate words found."
+	Else
+		Find MatchCase "WORD_FROM_LANGDEF=**"
+		Replace All "** "
+		Find MatchCase "WORD_FROM_LANGDEF="
+		Replace All ""
+	"Sorry! Found following duplicate words:
+	"
+	EndIf
+	Top
+	Clipboard 0
+
+// Insert macro command UnixReOn or PerlReOn here at the end of the
+// macro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn
+
+
+// ***** TestForInvalid ****************************************************
+
+// This macro should be executed after the macros SortLanguage and
+// TestForDuplicate. It searches for invalid words because of a delimiter
+// character inside a word. If invalid words are found and then manually
+// corrected in the language definition source, you have to run again this
+// macro for a final check and then again the macro SortLanguage to get an
+// optimal sorted language definition without duplicate or invalid words.
+
+// Macro "TestForInvalid" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+// The code for selecting the whole language definition at the current
+// cursor position is identical with the macro SortLanguage. So look
+// at the explanation for the macro SortLanguage for this code part.
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+	Loop
+		Key END
+		IfEof
+			ExitLoop
+		EndIf
+		IfColNum 1
+			Key DOWN ARROW
+		Else
+			Key LEFT ARROW
+			IfCharIs 32
+				Key DEL
+			Else
+				IfCharIs 9
+					Key DEL
+				Else
+					IfCharIs 12
+						Key DEL
+					Else
+						ExitLoop
+					EndIf
+				EndIf
+			EndIf
+		EndIf
+	EndLoop
+	Find MatchCase RegExp "%/L[1-9][0-9]++*File "
+	IfFound
+		Key HOME
+	EndIf
+	Find MatchCase RegExp Up "%/L[1-9][0-9]++*File "
+	IfNotFound
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+	Key HOME
+	Key RIGHT ARROW
+	StartSelect
+	Find MatchCase RegExp Select "%/L[1-9][0-9]++*File "
+	IfSel
+		Key HOME
+	Else
+		SelectToBottom
+	EndIf
+	Clipboard 9
+	Copy
+	EndSelect
+
+// After copying the whole language definition to clipboard 9 the cursor
+// should be placed at start of the just copied language definition.
+// This should be possible with a single regular expression search in up
+// direction. But the first search fails if the language definition was
+// selected with command SelectToBottom on my very slow Pentium 166 MHz
+// computer with Win95. I was not able to find the reason for this strange
+// effect. So the search is executed twice if the first one does not work.
+
+	Key HOME
+	Find MatchCase RegExp Up "%/L[1-9][0-9]++*File "
+	IfNotFound
+		Find MatchCase RegExp Up "%/L[1-9][0-9]++*File "
+	EndIf
+	EndSelect
+	Key HOME
+
+// Next the language definition is copied to a temporary DOS file. Then
+// it adds a line break at end of the file if the last line is not already
+// terminated with a line break. Back at top of the file trailing spaces
+// and all blank lines are also removed. Also all sequences of spaces and
+// tabs are replaced with a single space for easier handling the regular
+// expression replaces below. And for security delete also all preceding
+// spaces from every line although such preceding spaces should not exist.
+
+	NewFile
+	UnixMacToDos
+	Paste
+	ClearClipboard
+	IfColNum 1
+	Else
+	"
+	"
+	EndIf
+	Top
+	TrimTrailingSpaces
+	Loop
+		Find "^p^p"
+		Replace All "^p"
+		IfNotFound
+			ExitLoop
+		EndIf
+	EndLoop
+	Find RegExp "[ ^t]+"
+	Replace All " "
+	Find RegExp "% "
+	Replace All ""
+
+// The 2 characters of every marker character definition can (and should) be
+// both delimiter characters and those 2 characters must be also specified
+// as word in one of the color groups. This would result in a wrong invalid
+// word detection when not deleting here those marker character definitions
+// from the word list if the language definition contains any marker
+// character definition.
+
+	Find MatchCase RegExp "/Marker Characters = "*^p"
+	IfFound
+
+// If found, move the line with the marker characters above first color
+// group and delete everything except the pair(s) of marker characters.
+		Cut
+		Top
+		Find MatchCase RegExp "%/C[1-9][0-9]++"
+		EndSelect
+		Key HOME
+		Paste
+		Key UP ARROW
+		Find "/Marker Characters = ""
+		Delete
+		Key END
+		Key BACKSPACE
+		Key HOME
+
+// Search now in a loop for every pair of marker characters in the list
+// of words below. Such a marker character pair can exist at start of a
+// line with nothing else in this line (= delete the line), or at start
+// of a line with other words with the same starting character (= delete
+// the pair and the following space), or anywhere in the middle or end of
+// a line with other words with the same starting character. The marker
+// characters can be also UltraEdit style regular expression characters
+// and so the replace must be done without using a regular expression.
+// Replace All is used here to not loose the current cursor position.
+
+		Loop
+			IfCharIs 13
+				DeleteLine
+				Top
+				ExitLoop
+			EndIf
+			StartSelect
+			Key RIGHT ARROW
+			Key RIGHT ARROW
+			Cut
+			EndSelect
+// Is the pair on a line with nothing else in this line?
+			Find "^p^c^p"
+			Replace All "^p"
+			IfNotFound
+// Is the pair at start of a line with other words?
+				Find "^p^c "
+				Replace All "^p"
+				IfNotFound
+// Is the pair anywhere in the middle of a line with other words?
+					Find " ^c "
+					Replace All " "
+					IfNotFound
+// Is the pair at the end of a line with other words?
+						Find " ^c^p"
+						Replace All "^p"
+					EndIf
+				EndIf
+			EndIf
+		EndLoop
+	EndIf
+
+// Language definitions which contain the case sensitive keyword HTML_LANG
+// or XML_LANG in the first line are handled different because it is allowed
+// and required that words can start with '<'  or "</"  and end with '>' or
+// '=' although these characters are also delimiters. To get the correct
+// result also for the language definitions for HTML and XML files, it is
+// required to temporarily convert these 4 strings at start or end of every
+// word in one of the color groups to something different which surely does
+// not contain a delimiter character specified normally for HTML/XML files.
+
+	SelectLine
+	Find MatchCase RegExp MatchWord "^(^{HTML_LANG^}^{XML_LANG^}^)"
+	Replace All SelectText "^1"
+	IfFound
+		EndSelect
+		Top
+		Find MatchCase RegExp "%/C[1-9][0-9]++"
+		Key END
+		Find RegExp "%</"
+		Replace All "LeSsSlAsH"
+		Find " </"
+		Replace All " LeSsSlAsH"
+		Find RegExp "%<"
+		Replace All "LeSsSiGn"
+		Find " <"
+		Replace All " LeSsSiGn"
+		Find RegExp ">$"
+		Replace All "GrEaTeRSiGn"
+		Find "> "
+		Replace All "GrEaTeRSiGn "
+		Find RegExp "=$"
+		Replace All "EqUaLSiGn"
+		Find "= "
+		Replace All "EqUaLSiGn "
+		Top
+	Else
+		EndSelect
+		Top
+	EndIf
+
+// Delete everything from top of the file to the first delimiter character.
+// If the "/Delimiters = " specification is not found, the macro cannot
+// work and so exits with an error message in the temporary file.
+
+	StartSelect
+	Find MatchCase RegExp Select "%/Delimiters = "
+	IfSel
+		Delete
+	Else
+		SelectAll
+		"Sorry! Cannot find "/Delimiters = " at start of a line."
+		Clipboard 0
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+
+// Delete all spaces (and former tabs) in the list of delimiters.
+
+	SelectLine
+	Find " "
+	Replace All SelectText ""
+
+// Unselect the list of delimiters and delete everything below to first
+// color group. If there is no color group, exit with an error message.
+
+	EndSelect
+	Key HOME
+	StartSelect
+	Find MatchCase RegExp Select "%/C[1-9][0-9]++*^p"
+	IfSel
+		Delete
+	Else
+		SelectAll
+		"Sorry! Cannot find a color group specification at start of a line."
+		Clipboard 0
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+	EndSelect
+
+// Delete also all other lines with a color group definition.
+
+	Loop
+		Find MatchCase RegExp "%/C[1-9][0-9]++*^p"
+		Replace All ""
+		IfNotFound
+			ExitLoop
+		EndIf
+	EndLoop
+
+// Lines with words starting with a '/' must start with "// " because the
+// lines with language definition keywords also start with '/'. For this
+// macro the escape string "// " at start of the lines must be removed.
+// Also substring definitions are not of interest for this macro, only
+// the substrings which are interpreted by this macro as normal words.
+
+	Find RegExp "%// "
+	Replace All ""
+	Find RegExp "%^*^* "
+	Replace All ""
+
+// Split up the lines so there is only 1 word per line.
+
+	Find " "
+	Replace All "^p"
+
+// Since UE v10.00 it is allowed that a delimiter character is at start
+// of a word and it is also allowed to highlight the delimiters with a
+// color. So the following test for invalid words should not list words
+// which has a delimiter character at start of the word. This can be
+// easily avoided by simply temporarily cut the starting character
+// of every word in column mode and later paste it back.
+
+	ColumnModeOn
+	ColumnCut 1
+	ColumnModeOff
+	Top
+
+// The list of delimiter characters is often not sorted and could contain
+// duplicate characters. So sort it now with removing the duplicates. To
+// do this mark the line below with a string, insert a DOS line break
+// after every delimiter character (= create block from a single line),
+// select these lines and sort it. Then move the cursor to the marker
+// string, delete it, select again the block of lines with 1 delimiter
+// per line and convert it back to a single line by deleting every DOS
+// line break in the block.
+
+	Key DOWN ARROW
+	"DELIMITERS"
+	Key UP ARROW
+	SelectLine
+	Find RegExp "^(?^)"
+	Replace All SelectText "^1^p"
+	EndSelect
+	Top
+	Find MatchCase "DELIMITERS"
+	Key HOME
+	SelectToTop
+	SortAsc RemoveDup 1 -1 0 0 0 0 0 0
+	Find MatchCase "DELIMITERS"
+	Delete
+	Key UP ARROW
+	Key END
+	SelectToTop
+	Find "^p"
+	Replace All SelectText ""
+	EndSelect
+	Top
+
+// Now the first line contains the delimiter characters except space and
+// tab and all other lines 1 word without it's starting character and some
+// lines can be also empty now. To find the invalid words with a delimiter
+// character is quite simple now. Wherever a delimiter character is found
+// below line 1, the word at this line is invalid. So run in a loop a
+// search and replace all to mark those invalid words. Exit the loop
+// when the cursor reaches the end of the first line (carriage return).
+
+	Clipboard 8
+	Loop
+		IfCharIs 13
+			ExitLoop
+		EndIf
+
+// Some delimiter characters can be also UltraEdit style regular expression
+// characters. To use these characters in the following UltraEdit style
+// regular expression replace it is required to escape the character with
+// an additional ^ to handle the regular expression character as normal
+// character. And delimiters are always case sensitive, even when Nocase
+// is specified for the language. So the replace is also case sensitive
+// in case of a letter is a delimiter.
+
+		IfCharIs "$^%*+?[]^"
+			"^"
+			Key LEFT ARROW
+			StartSelect
+			Key RIGHT ARROW
+			Key RIGHT ARROW
+			Cut
+			EndSelect
+		Else
+			StartSelect
+			Key RIGHT ARROW
+			Cut
+			EndSelect
+		EndIf
+		Find MatchCase RegExp "%^(*^c*^)$"
+		Replace All " ^1 ^c"
+	EndLoop
+
+// After the loop the line with the already removed delimiters is not needed
+// anymore and so can be deleted. Also user clipboard 8 can be cleared. Next
+// paste back the first character of every word. Then clear user clipboard 9
+// too and switch back to the Windows clipboard.
+
+	DeleteLine
+	ClearClipboard
+	Clipboard 9
+	ColumnModeOn
+	Paste
+	ColumnModeOff
+	ClearClipboard
+	Clipboard 0
+
+// Delete all lines with a single character or which do not have a space
+// after first character. These lines contain correct words. Both replaces
+// are done in a loop because older versions of UltraEdit do not correct
+// work when this search expression for a whole line is found on consecutive
+// lines. Older versions then delete always only every odd line in a block
+// of those lines because start of the next line is not correct found after
+// deleting the whole line above including the DOS line termination.
+
+	Loop
+		Find RegExp "%?^p"
+		Replace All ""
+		IfNotFound
+			ExitLoop
+		EndIf
+	EndLoop
+	Loop
+		Find RegExp "%?[~ ]*^p"
+		Replace All ""
+		IfNotFound
+			ExitLoop
+		EndIf
+	EndLoop
+
+// If the file is now empty, the language definition does not contain any
+// invalid word and a success message is written into the empty file. To
+// verify if the file is empty now, it is enough to set the cursor to end
+// of first line. If the cursor is still at column 1, there is no word in
+// line 1 which means also there is nothing anymore in the edit window.
+
+	Key END
+	IfColNum 1
+		"Congratulations! No invalid words found."
+	Else
+		Top
+
+// There is at least 1 invalid word. So next delete the spaces inserted
+// before at start of the line with an invalid word as marker character.
+// But the spaces are now after pasting back the first column after the
+// starting character of every word. And also convert back the special
+// strings used for HTML and XML language definitions.
+
+		Find RegExp "%^(?^) +"
+		Replace All "^1"
+		Find MatchCase "LeSsSlAsH"
+		Replace All "</"
+		Find MatchCase "LeSsSiGn"
+		Replace All "<"
+		Find MatchCase "GrEaTeRSiGn"
+		Replace All ">"
+		Find MatchCase "EqUaLSiGn"
+		Replace All "="
+
+// For a better look of the report replace the first space before the
+// delimiter(s) found in every invalid word with 3 tabs and an info text.
+// The info text could be nevertheless not well aligned. If the tab stop
+// value for unnamed files is 8 which is the default and recommended, the
+// macro runs next in a loop through every line and inserts 2 additional
+// tabs if the cursor is at column 25 after the 3 tabs, or insert 1 tab
+// if the cursor is at column 33 after the 3 tabs, or removes 2 tabs
+// if the cursor is after the 3 tabs at a column greater than 41. Most
+// lines should then be well aligned because syntax highlighting words
+// are normally not very long. If the tab stop value is not 8, the macro
+// does not execute this very simple alignment procedure resulting in a
+// not perfect looking report. And finally it inserts a message at top
+// of the edit window which tells the user that invalid words are found.
+
+		Find RegExp "%^(*^) ^(? ^)"
+		Replace All "^1^t^t^t<- contains the delimiters: ^2"
+		Find RegExp "%^([~ ^t]+^) "
+		Replace All "^1^t^t^t<- contains the delimiter:  "
+		"	"
+		IfColNum 9
+			DeleteToStartofLine
+			Loop
+				Find "^t^t^t"
+				IfNotFound
+					ExitLoop
+				EndIf
+				Key LEFT ARROW
+				Key RIGHT ARROW
+				IfColNum 41
+				Else
+					IfColNum 25
+						"		"
+					Else
+						IfColNum 33
+							"	"
+						Else
+							Key BACKSPACE
+							Key BACKSPACE
+						EndIf
+					EndIf
+				EndIf
+			EndLoop
+			Top
+		Else
+			DeleteToStartofLine
+		EndIf
+	"Sorry! Found following invalid words:
+	
+	"
+		Key DOWN ARROW
+		IfEof
+			Top
+			Key END
+			Key LEFT ARROW
+			Key BACKSPACE
+		EndIf
+	EndIf
+	Top
+
+// Insert macro command UnixReOn or PerlReOn here at the end of the
+// macro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn
+
+
+// ***** WordfilesMerger ***************************************************
+
+// UltraEdit v15.00 and UEStudio v9.10 and later are reading by default
+// for new installations the syntax highlighting language definitions
+// from files *.uew in a specified wordfiles directory. The default
+// directory for wordfiles is a subdirectory named "wordfiles" in the
+// directory of the used INI file which is by default uedit32.ini stored
+// in %appdata%\IDMComp\UltraEdit\ or %appdata%\IDMComp\UEStudio\. The
+// wordfiles contain typically only 1 language definition per file. But
+// for compatibility after an upgrade UE and UES can still read wordfiles
+// with several languages like former standard wordfile.txt or wordfile.uew.
+
+// This macro can be used to merge the content of several opened wordfiles
+// with 1 or more languages together to a single wordfile. The macro does
+// not save the created wordfile with all the languages. It just creates
+// the new wordfile. You have to save this wordfile into a directory with
+// for example "uew" or "txt" as file extension and specify this file in
+// the configuration dialog for syntax highlighting or in the project
+// settings dialog if it should be a project specific wordfile.
+
+// This macro is not only useful for users with UE v15.00 or UES v9.10 and
+// later. It is also useful for users using a former version of UE or UES
+// to simply add a downloaded wordfile to the already used wordfile. Just
+// open the downloaded wordfile and the wordfile currently specified in
+// the syntax highlighting configuration dialog and run this macro. Then
+// save the new wordfile either with the name of the currently used
+// wordfile or with a new name and specify the full name of this new
+// wordfile in the syntax highlighting configuration dialog.
+
+// The macro keeps the current language numbers of the languages as long
+// as there is no further language having the same language number. In
+// this case the second, third, ... language with the same language number
+// gets a free language number and the whole language is moved up in the
+// file to correct position according to the new language number. There
+// is only 1 exception: a language definition with number 20 gets always
+// the next free language number in the wordfile if there is one. So this
+// macro can be used also to just re-order the languages in a wordfile if
+// no other wordfile is open on start of the macro.
+
+// For users with UE < v15.00 or UES < v9.00 the maximum number of
+// languages in a wordfile is 20. All UltraEdit versions prior v9.00
+// support only up to 10 languages in a wordfile. This macro does not
+// check if there are too many languages in the new wordfile depending
+// on current version of UltraEdit or UEStudio. The first 20 languages
+// in the new wordfile will have the language numbers 1 to 20. All
+// other languages will have also the language number 20, if there
+// are more than 20 languages in the new wordfile.
+
+// Macro "WordfilesMerger" has following macro properties:
+
+// Show Cancel Dialog for this macro ........... disabled
+// Continue if a Find with Replace not found ... enabled  ( < UE v13.10a+2)
+// Continue if search string not found ......... enabled  (>= UE v13.10a+2)
+
+	InsertMode
+	ColumnModeOff
+	HexOff
+	UnixReOff
+
+// Find in the active file a line with at least 20 characters and store
+// that line in the user clipboard 8 to detect when the initial file is
+// reached again. If only wordfiles are open as expected this command
+// selects the first 20 characters of the language definition line of
+// the first wordfile.
+
+	Top
+	Find RegExp "%????????????????????"
+	IfNotFound
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//		UnixReOn
+//		PerlReOn
+		ExitMacro
+	EndIf
+
+// Copy the current line into user clipboard 8 and prepare
+// clipboard 9 which is used to collect all the wordfile contents.
+
+	Clipboard 8
+	SelectLine
+	Copy
+	EndSelect
+	Clipboard 9
+	ClearClipboard
+
+// Run in a loop through all open files and append whole content of a file
+// with a line starting with a language number and the word "File" followed
+// by a space ("File Extensions =" or "File Names =") to clipboard 9. The
+// loop is exited if in the current file the line in clipboard 8 is found
+// again.
+
+	Loop
+		Top
+		Find MatchCase RegExp "%/L[1-9][0-9]++*File "
+		IfFound
+			SelectAll
+			CopyAppend
+			EndSelect
+			Top
+		EndIf
+		NextWindow
+		Clipboard 8
+		Find MatchCase "^c"
+		IfFound
+			ExitLoop
+		EndIf
+		Clipboard 9
+	EndLoop
+
+// Move cursor to top of the initial file, clear content in
+// clipboard 8, switch to clipboard 9 and open a new file.
+	EndSelect
+	Top
+	ClearClipboard
+	Clipboard 9
+	NewFile
+	UnixMacToDos
+// Enable the following command if configuration setting "Always create
+// new files as UNICODE" is enabled. That command requires UE v10.20 or
+// later. That is the reason why it is not enabled by default.
+//	UnicodeToASCII
+
+// Make sure that the last line of the file has a line termination. It
+// can be expected that the last line in a wordfile has no preceding
+// whitespace and therefore an enabled auto indent does not matter.
+// Additionally check if something was pasted into the new file. If
+// there was no wordfile open on start of this macro, close the new
+// file without saving it and exit the macro without any message.
+
+	Paste
+	IfColNum 1
+		SelectAll
+		IfSel
+			EndSelect
+		Else
+			CloseFile NoSave
+			ClearClipboard
+			Clipboard 0
+// Insert macro command UnixReOn or PerlReOn here before command
+// ExitMacro if you prefer UNIX or Perl compatible regular expressions.
+//			UnixReOn
+//			PerlReOn
+			ExitMacro
+		EndIf
+	Else
+	"
+	"
+	EndIf
+
+// Back at top of the new file with all the languages from the opened
+// wordfiles insert a line break before every language definition line.
+// This is required in case of 1 or more of the opened wordfiles do not
+// have a line termination at end of the file resulting in a language
+// definition line appended to end of last line of the wordfile content
+// appended before that language to clipboard 9 while collecting the
+// wordfile contents. Then delete all trailing spaces and tabs and
+// delete all blank lines.
+
+	Top
+	Find MatchCase RegExp "^(/L[1-9][0-9]++*File ^)"
+	Replace All "^p^1"
+	TrimTrailingSpaces
+	Loop
+		Find "^p^p"
+		Replace All "^p"
+		IfNotFound
+			ExitLoop
+		EndIf
+	EndLoop
+
+// The first line in the wordfile should be now also a blank line. Insert
+// here a special character used later - see below. The else branch should
+// be never executed. It simply replaces everything from top of the file
+// to first line starting with "/L" with a line containing only the marker
+// character #, if the first line is not a blank line.
+
+	Key END
+	IfColNum 1
+		"#"
+		Key DOWN ARROW
+	Else
+		Top
+		StartSelect
+		Find MatchCase RegExp "%/L"
+		EndSelect
+	"#
+	/L"
+	EndIf
+
+// After this cleanup process insert a blank line between end of a language
+// and start of the next language. And add a blank line also at end of the
+// file. That is required for easily selecting entire languages including
+// the last one in the file in the following process of re-ordering the
+// languages.
+
+	Key END
+	Find MatchCase RegExp "^(/L[1-9][0-9]++*File ^)"
+	Replace All "^p^1"
+	Bottom
+	"
+	"
+	Top
+
+// To this point everything was quite simple. And if there are no duplicate
+// language numbers, and navigating through the opened document windows was
+// in an increasing order of the language numbers in the wordfiles, the new
+// file with all the languages would be already perfectly prepared for
+// saving and the macro could end here. But there are a little bit too
+// many IFs here. So the next complex process has to solve duplicate
+// language numbers as much as possible, give all languages with default
+// number 20 next possible language number and finally re-order all the
+// languages in this new file.
+
+// First insert at top of the file lines with /L1 to /L19 and store them
+// also in clipboard 8 because needed later again. Then search once per
+// line for a line starting with this string and insert a string to mark
+// this line as first language line with the current language number to
+// keep existing languages numbers wherever possible.
+
+	"/L1
+	/L2
+	/L3
+	/L4
+	/L5
+	/L6
+	/L7
+	/L8
+	/L9
+	/L10
+	/L11
+	/L12
+	/L13
+	/L14
+	/L15
+	/L16
+	/L17
+	/L18
+	/L19
+	"
+	Clipboard 8
+	SelectToTop
+	Copy
+	EndSelect
+	Top
+	Clipboard 9
+	Loop
+		StartSelect
+		Key END
+		Cut
+		Delete
+		Find MatchCase RegExp "%^(^c[~0-9]^)"
+		Replace "!LaNgUaGe!^1"
+		Top
+		IfCharIs "#"
+			ExitLoop
+		EndIf
+	EndLoop
+
+// The following 3 regular expression replace all commands convert all
+// lines still starting with /L1 to /L19 to lines starting with /L20.
+// So this small block solves the problem with language numbers other
+// than number 20 used multiple times.
+
+	Find MatchCase RegExp "%/L2^([~0]^)"
+	Replace All "/L1^1"
+	Find MatchCase RegExp "%/L[13-9]^([~0-9]^)"
+	Replace All "/L20^1"
+	Find MatchCase RegExp "%/L[13-9][0-9]"
+	Replace All "/L20"
+
+// In the third step all remaining languages with number 20 get now the
+// next free language number. The language numbers already applied to a
+// language can be found by searching for a language with the current
+// number and the special marker string inserted at start of the lines
+// in the first step of the renumbering and re-ordering process. The
+// special marker string is removed in this loop too. If there are more
+// than 20 languages in the file, all remaining languages have now the
+// language number 20 which is allowed only for UE V15.00 and later.
+
+	Clipboard 8
+	Paste
+	Top
+	Clipboard 9
+	Loop
+		StartSelect
+		Key END
+		Cut
+		Delete
+		Find MatchCase RegExp "%!LaNgUaGe!^(^c[~0-9]^)"
+		Replace "^1"
+		IfNotFound
+			Top
+			Find MatchCase RegExp "%/L20"
+			Replace "^c"
+		EndIf
+		Top
+		IfCharIs "#"
+			ExitLoop
+		EndIf
+	EndLoop
+
+// Fourth step: re-order the syntax highlighting languages in the file
+// according to their language numbers by cutting and appending the entire
+// languages in the correct order to user clipboard 9. It's possible under
+// certain conditions that UltraEdit does not recognize that the cursor is
+// already at top of the file after pasting the lines with the language
+// numbers. As workaround a space is inserted at top of the file and
+// immediately deleted. That helps UltraEdit to synchronize and the
+// following selection of /L1 works correct.
+
+	ClearClipboard
+	Clipboard 8
+	Paste
+	Top
+	" "
+	Key BACKSPACE
+	Loop
+		StartSelect
+		Key END
+		Cut
+		Delete
+		Find MatchCase RegExp "%^c[~0-9]"
+		IfFound
+			EndSelect
+			Key HOME
+			StartSelect
+			Find MatchCase Select "^p^p"
+			Clipboard 9
+			CutAppend
+			Clipboard 8
+			Top
+		EndIf
+		IfCharIs "#"
+			ExitLoop
+		EndIf
+	EndLoop
+
+// Last step: delete the line starting with '#' at top of the file, insert
+// the languages in clipboard 9, delete the blank line at bottom of the
+// file and finally clear the used clipboard 9 and switch back the Windows
+// clipboard.
+
+	ClearClipboard
+	DeleteLine
+	Clipboard 9
+	Paste
+	Bottom
+	Key BACKSPACE
+	Top
+	ClearClipboard
+	Clipboard 0
+// Insert macro command UnixReOn or PerlReOn here at the end of the
+// macro if you prefer UNIX or Perl compatible regular expressions.
+//	UnixReOn
+//	PerlReOn

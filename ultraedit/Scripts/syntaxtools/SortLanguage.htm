@@ -1,0 +1,1101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+ <title>Description of the syntax highlighting sort macro for UltraEdit/UEStudio</title>
+ <meta name="date" content="2011-06-13">
+ <meta name="author" content="Mofi">
+ <meta http-equiv="content-language" content="en">
+ <meta http-equiv="content-style-type" content="text/css">
+ <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+ <style type="text/css">
+  body    { font-family:Arial }
+  strong  { font-weight:bold  }
+  em      { font-style:italic }
+  .red    { color:red    }
+  .blue   { color:blue   }
+  .green  { color:green  }
+  .maroon { color:maroon }
+  p.top6  { margin-top:6px }
+  p.bot6  { margin-bottom:6px; color:maroon   }
+  p.both6 { margin-top:6px; margin-bottom:6px }
+  div     { margin:25px 0px; height:3px }
+  hr      { color:black; background-color:black; height:2px; border:0px solid white }
+  pre     { font-family:'Courier New'; font-size:105% }
+  h2      { font-size:120%; font-weight:bold }
+ </style>
+</head>
+
+<body>
+
+<h2>Introduction</h2>
+
+<p><strong>Hello wordfile creator!</strong></p>
+
+<p>Here is what you are waiting for a long time - a macro (set) which is able to
+sort all words of all color groups of a syntax highlighting language definition.</p>
+
+<p>It handles case sensitivity according to <span class="red">Nocase</span>, words beginning with
+'<span class="red">/</span>', substrings defined with &quot;<span class="red">** </span>&quot; and also
+special language settings like <span class="red">HTML_LANG</span>, <span class="red">XML_LANG</span>
+and <span class="red">LATEX_LANG</span> correct. FORTRAN_LANG and the other language markers have no
+influence on the sort order of the words in the color groups.</p>
+
+<p>It does not matter, if the language definition you want sort is saved in a file with other language
+definitions (for example wordfile.txt or wordfile.uew) or the file contains only one language definition.
+Also blank lines within the whole language definition are allowed and are removed by the macro during
+execution. Set the cursor anywhere within the language definition you want to sort and start the macro
+<strong>SortLanguage</strong>. That's all, lean back and look what's going on.</p>
+
+<p><strong>ATTENTION!</strong></p>
+
+<p class="red"><strong>Do not use the macro SortLanguage with UltraEdit v15.00.0.1033 to v15.00.0.1047. With<br>
+these versions of UltraEdit this macro does not work because of two bugs in UltraEdit.</strong></p>
+
+<p>The macro is not working correct when the setting &quot;<em>Automatically copy to clipboard when selection
+is made</em>&quot; at <strong>Configuration - Editor - Miscellaneous</strong> is enabled. Uncheck this setting
+before running the macro. And also disable word-wrap mode if word-wrap is enabled for the wordfile or by
+default for new (temporary) files.</p>
+
+
+<div><hr></div>
+
+
+<h2>General sorting requirements</h2>
+
+<p>Some general information about the sorting requirements of words in a syntax highlighting
+wordfile for UltraEdit and UEStudio.</p>
+
+<p>The first line of a syntax highlighting language block in a wordfile is the language definition
+line. It starts with uppercase <strong><span class="green">/L</span><span class="red">x</span></strong>
+with <span class="red">x</span> is a number in the range of 1 to 20. Normally the name of the syntax
+highlighting language in double quotes follows immediately the language number. The language definition
+line must end with either <strong><span class="green">File Extensions&nbsp;=</span></strong> or
+<strong><span class="green">File Names&nbsp;=</span></strong> and the list of file extensions or file
+names of those files of which content should be highlighted with this syntax highlighting language.</p>
+
+<p>All keywords and key strings supported by UltraEdit and UEStudio to define how a syntax highlighting
+language should highlight the content of a file are case sensitive and those key strings with an equal
+sign require exactly 1 space before and 1 space after the equal sign. An example demonstrating the
+incorrect usage of keywords and key strings in a language definition line with red marked errors:</p>
+
+<p class="green">/L20"Example" No<span class="red">C</span>ase String Chars =<span class="red">&quot;</span>
+Line Comment &nbsp;<span class="red">=</span> // File Extensions<span class="red">=</span> TXT</p>
+
+<p class="green">/L20"Example" No<span class="blue">c</span>ase String Chars = <span class="blue">&quot;</span>
+Line Comment <span class="blue">=</span> // File Extensions <span class="blue">=</span> TXT</p>
+
+<p>Compare the first line with the errors with the correct second line. What is wrong in the first line?</p>
+
+<p>In keyword &quot;<span class="green">Nocase</span>&quot; the character 'c' is written in wrong case.<br>
+In key string &quot;<span class="green">String Chars = </span>&quot; the space after the equal sign is
+missing.<br>
+In key string &quot;<span class="green">Line Comment = </span>&quot; there are 2 spaces before the equal
+sign.<br>
+In key string &quot;<span class="green">File Extensions = </span>&quot; the space before the equal sign
+is missing.</p>
+
+<p>Important for the sorting order of the words in the color groups is the keyword
+<span class="green">Nocase</span> in the language definition line because it controls among other
+things the case sensitivity of the words. Therefore the <strong>SortLanguage</strong> macro searches
+in the language definition line for the word <span class="red">nocase</span> in any case and replaces
+it always by the correct keyword <span class="green">Nocase</span> before it starts to sort the words.</p>
+
+
+<p><br>All words in the color groups starting with the same character may be on the same line or spread
+across multiple lines, however if they are spread across multiple lines the lines must be one after the
+other with no empty lines or other line lines between them.</p>
+
+<p>If the language is case sensitive, the letter 'A' is different from 'a' and so words starting
+with 'A' must be on a different line from words starting with 'a'. If the language is case insensitive
+words starting with the letter 'A' must be on the same line as words starting with the letter 'a'.</p>
+
+<p>First an example for a case sensitive language with several sorting errors marked with red color:</p>
+
+<p class="green">Collection<br>
+Checkbox <span class="red">case</span><br>
+Anchor Applet <span class="red">Dictionary</span> Area Arguments Array <span class="red">abstract</span><br>
+Boolean<br>
+Button<br>
+<span class="red">Crypto</span><br>
+Date Document Drive Drives<br>
+break<br>
+byte<br>
+default delete do double<br>
+class const catch char continue</p>
+
+<p>What is wrong in the example above and why?</p>
+
+<p>The word <span class="red">case</span> starts with a lowercase 'c' and the language is case sensitive.
+So this word must be on a different line than the word <span class="green">Checkbox</span> which starts
+with an uppercase 'C'. The same mistake was made here for the word <span class="red">abstract</span>.</p>
+
+<p>The word <span class="red">Dictionary</span> starts with 'D' and therefore must be on a different
+line than the words starting with 'A'.</p>
+
+<p>The word <span class="red">Crypto</span> starts with 'C' and therefore must be on the same line with
+<span class="green">Collection</span> or <span class="green">Checkbox</span> or on a separate line, but
+with no other lines between the lines with words starting with 'C'. In the example there are lines with
+words starting with 'A' and 'B' between the line with <span class="green">Checkbox</span> and the line
+with <span class="red">Crypto</span> and therefore this word is ignored.</p>
+
+<p>That the words <span class="green">class const catch char continue</span> are not sorted alphabetically
+within the line is no problem for UltraEdit/UEStudio. It is also no problem that for example the line with
+the words <span class="green">default delete do double</span> is above the line with the words starting
+with 'c'. And it also doesn't matter if some lines contains multiple words starting with the same character
+and other words starting with the same character are spread over multiple lines as long as lines with words
+starting with the same character build a unique block within a color group. But with such a weird grouping
+and ordering of the words mistakes can happen very easily when inserting additional words. Therefore the
+<strong>SortLanguage</strong> macro sorts also the words within a line and the entire lines alphabetically.
+Here is the corrected words list as produced by the macro:</p>
+
+<p class="green">Anchor Applet Area Arguments Array<br>
+Boolean Button<br>
+Checkbox Collection <span class="blue">Crypto</span><br>
+Date <span class="blue">Dictionary</span> Document Drive Drives<br>
+<span class="blue">abstract</span><br>
+break byte<br>
+case catch char class const continue<br>
+default delete do double</p>
+
+<p>Now let us assume the keyword <span class="green">Nocase</span> exists on the language definition line
+and therefore the case of the letters of the words in the color groups is not important. In this case all
+the words starting with a lowercase character in the list above would not be correct highlighted. The
+correct word order would be for language ignoring the case is:</p>
+
+<p class="green">abstract Anchor Applet Area Arguments Array<br>
+Boolean break Button byte<br>
+case catch char Checkbox class Collection const continue Crypto<br>
+Date default delete Dictionary do Document double Drive Drives</p>
+
+<p>During the collection of words starting with the same character in one line, a line length check is
+done by the submacros <strong>CollectCase</strong> and <strong>CollectNocase</strong> which sets the
+maximum numbers of characters per line to 106 without line break which is the best value for printing
+with Courier New 8 with 1.5&nbsp;cm left and right border on an European A4 sheet. This line length is
+also good for lower resolutions (1024x768) and at least one additional view open on left or right side
+an a normal font size used for displaying the text. A wordfile for the UE/UES community should not work
+with larger line lengths to be readable by most users without the need to scroll the lines horizontally.
+But if you don't want this line length limit, remove the <span class="red">red lines</span> in the macro
+source code&nbsp;- see below.</p>
+
+
+<p><br>Lines starting with '<span class="red">/</span>' are interpreted by UltraEdit/UEStudio
+as a line with a special syntax highlighting keyword. Therefore all lines in the color groups
+containing one or more "words" starting with '<span class="red">/</span>' must start with
+&quot;<span class="blue">// </span>&quot; to be correct interpreted. An example with a wrong
+and a correct line:</p>
+
+<p class="green">/word1 /word2<br><br>
+<span class="blue">//</span> /word1 /word2</p>
+
+
+<p><br>A line starting with &quot;<span class="red">** </span>&quot; defines a line with 1 or more
+substrings. The strings on this line can start with different characters. The lines with substrings
+must only build a block within a color group, best at top of the color group. Normally only 1&nbsp;line
+is required for the definition of substrings in a color group. All words starting with those substrings
+are completely highlighted with the color of the color group. For more details on substrings see the
+documentation of <a href="TestForDuplicate.htm">TestForDuplicate</a>.</p>
+
+
+<p><br>Languages marked with <span class="red">HTML_LANG</span> or <span class="red">XML_LANG</span>
+in the language definition line enables the HTML/XML specific interpretation of the words in the color
+groups. When one of these keywords is present, the special characters '<span class="red">&lt;</span>'
+and '<span class="red">/</span>' may be placed in front of any keyword as desired without all keywords
+with the special characters ('&lt;' and '/') all having to be on the same line. In this case, words
+starting with the same letter must be on the same or contiguous lines as is normally required.</p>
+
+
+<p><br>A language marked with <span class="red">LATEX_LANG</span> in the language definition line
+enables the LaTex/Tex specific interpretation of the words in the color groups. If a word begins with
+'<span class="red">\</span>' then the second character is used to determine which line the word should
+be on. All words beginning with '<span class="red">\a</span>' should be on the same line as other words
+beginning with '<span class="red">\a</span>' or '<span class="red">a</span>'. In the same way, all words
+beginning with '<span class="red">\b</span>' should be on the same line as other words beginning with
+'<span class="red">\b</span>' or '<span class="red">b</span>' but on a different line from those starting
+with '<span class="red">\a</span>', etc.</p>
+
+
+<p><br>For more details and help about syntax highlighting wordfiles see in help of
+UltraEdit or UEStudio the page <strong>Syntax Highlighting</strong> and the forum topic
+<a href="http://www.ultraedit.com/forums/viewtopic.php?t=5720">Readme for the Syntax Highlighting forum</a>.</p>
+
+
+<div><hr></div>
+
+
+<h2>General macro information</h2>
+
+<p>Some general information about the macros used to sort the words in all color groups of a language.</p>
+
+<p>The macros are ready for usage in the macro file SyntaxTools.mac. The macros are developed with
+having in view the compatibility with many versions of UltraEdit and UEStudio and are tested with
+many versions of UltraEdit. But always take a quick look on the result of the sorting operation.
+It is always possible that a version of UE/UES released after last update of the macro set has a
+bug in program code resulting in a wrong macro execution.</p>
+
+<p>To use this macro set you need at least v10.00 of UltraEdit or any version of UEStudio.
+If you delete the <span class="red">red lines</span>, you can also use v8.20 and later.
+The macros were developed and tested with UE v10.10c and later versions of UltraEdit.</p>
+
+<p>If you find any bugs or have other related questions, post it at
+<a href="http://www.ultraedit.com/forums/viewtopic.php?t=443">http://www.ultraedit.com/forums/viewtopic.php?t=443</a>.</p>
+
+<p>You can see the source code of the macros below with lots of comments in case of being interested
+in how the macros work. If you want to make changes to fit your requirements better, feel free to do
+so, but take following into consideration:</p>
+
+<p>All macros should have following properties:</p>
+
+<table cellspacing=0 cellpadding=0 border=0 summary="Required macro properties">
+<tr>
+ <td class="blue">Show Cancel Dialog for this macro</td>
+ <td>&nbsp;...&nbsp;</td><td class="blue">disabled</td><td></td>
+</tr>
+<tr>
+ <td class="blue">Continue if a Find with Replace not found</td>
+ <td>&nbsp;...</td><td><span class="blue">enabled</span> ( &lt;</td><td>UE v13.10a+2)</td>
+</tr>
+<tr>
+ <td class="blue">Continue if search string not found</td>
+ <td>&nbsp;...</td><td><span class="blue">enabled</span> (>=&nbsp;</td><td>UE v13.10a+2)</td>
+</tr>
+<tr>
+ <td class="blue">Hot Key</td>
+ <td>&nbsp;...</td><td class="blue"><em>none</em></td><td></td>
+</tr>
+</table>
+
+<p>You can assign a hot key for <strong>SortLanguage</strong>, if you use it frequently.
+Never run the submacros manually!</p>
+
+<p>Remove the <span class="green">green comment lines</span> with the blank lines before copying
+the instructions to the macro edit window. The comments are only for experts which want to know
+how the macros work.</p>
+
+<p>Please note that the line length is not 100% correct on lines with special words for HTML_LANG,
+XML_LANG, LATEX_LANG, substrings and words starting with '/', because the words have more characters
+during collection than after end of the macro execution.</p>
+
+
+<div><hr></div>
+
+
+<h2>Disclaimer</h2>
+
+<p>THIS MACRO SET IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR
+IMPLIED, STATUTORY OR OTHERWISE, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT,
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO USE, RESULTS AND PERFORMANCE
+OF THE MACRO SET IS ASSUMED BY YOU AND IF THE MACRO SET SHOULD PROVE TO BE DEFECTIVE, YOU ASSUME THE
+ENTIRE COST OF ALL NECESSARY SERVICING, REPAIR OR OTHER REMEDIATION. UNDER NO CIRCUMSTANCES, CAN THE
+AUTHOR BE HELD RESPONSIBLE FOR ANY DAMAGE CAUSED IN ANY USUAL, SPECIAL, OR ACCIDENTAL WAY OR BY THE
+MACRO SET.</p>
+
+
+<div><hr></div>
+
+
+<h2>History</h2>
+
+<p class="bot6">2005-04-27:</p>
+
+<p class="both6">Fixed problem with more than one space between the words resulting
+in additional empty lines for each additional space at sorted language.</p>
+
+<p class="top6">Fixed missing command <em>Key HOME</em> in the last line of this offline documentation.</p>
+
+
+<p class="bot6">2006-02-19:</p>
+
+<p class="both6">A workaround for a bug of UltraEdit v10.xx was not well down because if the cursor was
+already at the language definition line of which words should be sorted and this language definition is
+the last one in a wordfile with more than 1&nbsp;language definition the previous language definition
+was sorted. Found this problem by myself and fixed it now with a rewritten code block for finding start
+of current language definition. This new solution is even easier than the previous one.</p>
+
+<p class="both6">Second I have rewritten the code block for selecting the whole language definition.
+At previous versions I used <em>Find RegExp &quot;%*^p^p&quot;</em> command to select all lines of
+the language definition. This only works because of a bug of UltraEdit. The new language selecting
+code block is much more complicated but with additional code it now allows also blank lines within
+the language definition. Note: These blank lines are removed during macro execution.</p>
+
+<p class="top6">All these changes occur in the main macro SortLanguage.</p>
+
+
+<p class="bot6">2006-04-02:</p>
+
+<p class="both6">Because of a bug in UltraEdit/UEStudio the Cancel dialog can cause crashes when calling
+a submacro. To avoid those crashes the macro property <em>Show Cancel Dialog for this macro</em> of all
+macros is not set anymore.</p>
+
+<p class="both6">Many users creating a syntax highlighting language definition for the first time write
+the keyword <span class="red">Nocase</span> wrong. The keywords are case sensitive and so <em>nocase</em>
+or <em>NoCase</em> is ignored by UE/UES. The macro SortLanguage now also detects a wrongly written
+Nocase keyword and corrects it automatically before the sort is done.</p>
+
+<p class="both6">With v11 of UltraEdit and with UEStudio the keyword <span class="red">XML_LANG</span>
+was introduced which has the same special meaning for words starting with '&lt;' and '/' as HTML_LANG.
+The macro SortLanguage recognizes this special keyword now too.</p>
+
+<p class="both6">Before macro SortLanguage is executed the cursor must be set anywhere within a language
+definition. If the cursor is set on a blank line before a language definition and the file contains more
+than one language definition, the language definition above the cursor was sorted by previous versions of
+this macro. If no other language definition is in the file and the cursor is set on a blank line before
+the only language definition, the previous versions of the macro SortLanguage have done nothing. The macro
+SortLanguage was modified on 2006-04-02 to first set the cursor on a line which does contain any character
+before selecting the whole language definition. Now always the language below the current cursor position
+is sorted if the cursor is set on a blank line (= line which contains no or only whitespace characters).</p>
+
+<p class="top6">Last some spelling mistakes are corrected in the documentation and the style of the
+documentation has changed also a little.</p>
+
+
+<p class="bot6">2006-04-17:</p>
+
+<p class="both6">The macros are designed for being executed on files with DOS line terminations because
+the syntax highlighting wordfile must be also a DOS file. The SortLanguage macro creates twice a new file.
+If the user has specified in the configuration dialog that the <em>Default file type for new files</em>
+is UNIX or MAC and not DOS and additionally has not selected the option <em>Automatically convert to DOS
+format</em>, new files are created not with CR/LF as line terminations and the macros will fail. To solve
+this problem the command <strong>UnixMacToDos</strong> was inserted immediately after the 2&nbsp;NewFile
+commands to make sure that the new file is always a DOS file.</p>
+
+<p class="both6">Added to this documentation where to insert the macro command
+<span class="red">UnixReOn</span> or <span class="red">PerlReOn</span> if the user prefers the UNIX
+or Perl compatible regular expression engine instead of the UltraEdit regular expression engine which
+is used for these macros. Search for <strong>UnixReOn</strong> to find the 2&nbsp;exit positions.</p>
+
+<p class="both6">The order of the macros within the macro file has changed. The main macro SortLanguage
+is now the first macro in the file. That allows the user to run the macro SortLanguage also with
+<strong>Play Again</strong> from the <strong>Macro</strong> menu immediately after loading the macro
+file. So there is no need to select the macro SortLanguage from the macro list before execution after
+loading the macro file anymore.</p>
+
+<p class="both6">The macro file SyntaxTools.mac now contains also 3 additional macros to test a
+language definition for duplicate words. See <a href="TestForDuplicate.htm">TestForDuplicate</a>
+for details about this additional macro set.</p>
+
+<p class="top6">Last some small mistakes are corrected in the documentation.</p>
+
+
+<p class="bot6">2006-11-19:</p>
+
+<p class="both6">There were 2 small errors in the macro codes for SortLanguage and ExpandSubstring. In
+both macros there was 1 <span class="red">Else</span> which should be <span class="red">EndIf</span>.
+These errors did not have an influence on the function of the macros.</p>
+
+<p class="both6">The UltraEdit versions 12.10+3 to v12.10b and the UEStudio versions 5.50 and 5.50a
+always move the focus to nearest left tab in the file tab order instead of the last used file according
+to the window history when closing a file. With release of UltraEdit v12.20 and UEStudio v6.00 the focus
+handling after a file tab close can be customized with the option <em>Move to nearest left tab after
+current tab is closed</em> at <em>Configuration - Application Layout - File Tabs</em>. When this option
+is set or one of the UE/UES versions is used which always sets the focus to nearest left tab after a
+tab is closed, the wordfile with the language definition to sort has had to be the most right tab or
+the macro will paste the sorted language definition to the wrong file after closing the temporary
+files at end of the macro SortLanguage.</p>
+
+<p class="top6">Now the macro <strong>SortLanguage</strong> has been improved and works independent
+of which file gets the focus after closing the 2 temporary file tabs. The macro now searches for the
+still existing selection of the whole language definition in all open windows before it pastes the
+sorted language definition over the unsorted definition.</p>
+
+
+<p class="bot6">2006-12-05:</p>
+
+<p class="both6">In the source file the selected part of the language definition line does not start
+with a slash. Also in the temp file right before copying the sorted language back the language definition
+line has no slash at start. But for the loop to find correct file after closing last temp file a regular
+expression search was inserted which should find the start of the language definition line and should copy
+the language name with its language number to clipboard&nbsp;8. This search was never successful and so
+the &quot;find correct file&quot; loop was executed with last content of clipboard&nbsp;8 which could
+successfully find the correct file, but could also lead to an endless window switching loop. Fixed this
+bug by deleting the slash character in the regular expression search for the language definition number
+and name.</p>
+
+<p class="top6">Last some small spelling mistakes are corrected in the documentation.</p>
+
+
+<p class="bot6">2007-05-01:</p>
+
+<p class="top6">The macro file was renamed from SyntaxSort.mac to SyntaxTools.mac and this file
+from SyntaxSort.htm to SortLanguage.htm. The macro file contains now also an additional macro to
+test a language definition for invalid words. See <a href="TestForInvalid.htm">TestForInvalid</a>
+for details about this additional macro. The macro source code is also available as UEM file&nbsp;-
+see top of this text file. The macros for sorting the words are not modified.</p>
+
+
+<p class="bot6">2007-08-02:</p>
+
+<p class="top6">Near the end of macro SortLanguage UltraEdit does not find under certain conditions
+(depending on PC hardware, version, source file) the language number and language name at top of the
+first temporary file and so does not copy those information to user clipboard&nbsp;8. This could result
+in an endless loop because the correct window is never found because of wrong content in clipboard&nbsp;8.
+A workaround was added for this very special UltraEdit problem.</p>
+
+
+<p class="bot6">2009-04-30:</p>
+
+<p class="top6">Changed the regular expression for finding the language definition line to find also
+such lines which have no language name, only the language number. And made small modifications in
+comments and code, but without any effect on execution or result of the macro and therefore not
+really worth to document them in detail. The main changes are made on this description with lots
+of new information for interested readers.</p>
+
+
+<p class="bot6">2009-06-11:</p>
+
+<p class="top6">In macro <strong>ExpandSubstring</strong> changed the method used to delete the remaining
+space at start of lines with substrings because of a bug detected with UltraEdit v15.00.0.1048.</p>
+
+
+<p class="bot6">2009-11-13:</p>
+
+<p class="top6">Added the attention at top of the file.</p>
+
+
+<p class="bot6">2011-06-13:</p>
+
+<p class="top6">Updated the macro to support also languages with up to 20 color groups.</p>
+
+
+<div><hr></div>
+
+
+<h2>Source code of the macros</h2>
+
+<p>MACRO <strong>CollectCase</strong></p>
+
+<pre><span class="green">// This macro is a submacro for macro SortLanguage. It collects the
+// sorted word definitions of a color group. All words starting with
+// the same case sensitive character will be collected on a single
+// line. The line length is limited to 106 characters. If this limit
+// is crossed, a new line is started.</span>
+InsertMode
+ColumnModeOff
+HexOff
+UnixReOff
+IfCharIs &quot;[^^^%^$^?^*^+^[^]]&quot;
+&quot;^&quot;
+Key LEFT ARROW
+StartSelect
+Key RIGHT ARROW
+Key RIGHT ARROW
+EndSelect
+Copy
+Key LEFT ARROW
+Key BACKSPACE
+Key RIGHT ARROW
+Else
+StartSelect
+Key RIGHT ARROW
+EndSelect
+Copy
+EndIf
+Loop
+Find MatchCase RegExp &quot;%^c&quot;
+IfFound
+Key UP ARROW
+Key END
+&quot; &quot;
+Key DEL
+Key END
+<span class="red">IfColNumGt 107
+Find Up &quot; &quot;
+Replace &quot;^p&quot;
+Key RIGHT ARROW
+EndIf</span>
+Else
+Key HOME
+Key DOWN ARROW
+IfEof
+ExitLoop
+Else
+IfCharIs &quot;[^^^%^$^?^*^+^[^]]&quot;
+&quot;^&quot;
+Key LEFT ARROW
+StartSelect
+Key RIGHT ARROW
+Key RIGHT ARROW
+EndSelect
+Copy
+Key LEFT ARROW
+Key BACKSPACE
+Key RIGHT ARROW
+Else
+StartSelect
+Key RIGHT ARROW
+EndSelect
+Copy
+EndIf
+EndIf
+EndIf
+EndLoop</pre>
+
+
+<div><hr></div>
+
+
+<p>MACRO <strong>CollectNocase</strong></p>
+
+<pre><span class="green">// This macro is a submacro for macro SortLanguage. It collects the
+// sorted word definitions of a color group. All words starting with
+// the same not case sensitive character will be collected on a
+// single line. The line length is limited to 106 characters. If
+// this limit is crossed, a new line is started.</span>
+InsertMode
+ColumnModeOff
+HexOff
+UnixReOff
+IfCharIs &quot;[^^^%^$^?^*^+^[^]]&quot;
+&quot;^&quot;
+Key LEFT ARROW
+StartSelect
+Key RIGHT ARROW
+Key RIGHT ARROW
+EndSelect
+Copy
+Key LEFT ARROW
+Key BACKSPACE
+Key RIGHT ARROW
+Else
+StartSelect
+Key RIGHT ARROW
+EndSelect
+Copy
+EndIf
+Loop
+Find RegExp &quot;%^c&quot;
+IfFound
+Key UP ARROW
+Key END
+&quot; &quot;
+Key DEL
+Key END
+<span class="red">IfColNumGt 107
+Find Up &quot; &quot;
+Replace &quot;^p&quot;
+Key RIGHT ARROW
+EndIf</span>
+Else
+Key HOME
+Key DOWN ARROW
+IfEof
+ExitLoop
+Else
+IfCharIs &quot;[^^^%^$^?^*^+^[^]]&quot;
+&quot;^&quot;
+Key LEFT ARROW
+StartSelect
+Key RIGHT ARROW
+Key RIGHT ARROW
+EndSelect
+Copy
+Key LEFT ARROW
+Key BACKSPACE
+Key RIGHT ARROW
+Else
+StartSelect
+Key RIGHT ARROW
+EndSelect
+Copy
+EndIf
+EndIf
+EndIf
+EndLoop</pre>
+
+
+<div><hr></div>
+
+
+<p>MACRO <strong>ExpandSubstring</strong></p>
+
+<pre><span class="green">// This macro is a submacro for macro SortLanguage. It expands every
+// substring definition which are marked with &quot;** &quot; at beginning of
+// a line with &quot;**__&quot; and removes the substring definition string &quot;** &quot;.</span>
+InsertMode
+ColumnModeOff
+HexOff
+UnixReOff
+Loop
+Find RegExp &quot;%^*^* &quot;
+IfNotFound
+ExitLoop
+<span class="green">// <span class="maroon">2006-11-19:</span> Fixed wrong command <span class="red">Else</span> to <span class="red">EndIf</span>.</span>
+EndIf
+StartSelect
+Key LEFT ARROW
+EndSelect
+Delete
+SelectLine
+StartSelect
+Find &quot; &quot;
+Replace All SelectText &quot; **__&quot;
+EndSelect
+EndLoop
+Top
+<span class="green">// <span class="maroon">2009-06-11:</span> Changed the method used to delete the remaining space at start
+// of the line with substrings because of a bug in UltraEdit v15.00.0.1048.</span>
+Find RegExp &quot;% ^*^*__&quot;
+Replace All &quot;**__&quot;</pre>
+
+
+<div><hr></div>
+
+
+<p>MACRO <strong>ReconvertWords</strong></p>
+
+<pre><span class="green">// This macro is a submacro for macro SortLanguage. After collecting the
+// words, some specials must be reconverted. First all lines with words
+// beginning with a slash must begin with &quot;// &quot;. This can be easily done
+// with 1 search and replace.</span>
+InsertMode
+ColumnModeOff
+HexOff
+UnixReOff
+Find RegExp &quot;%/&quot;
+Replace All &quot;// /&quot;
+
+<span class="green">// Substrings are marked with &quot;**__&quot; at beginning of each word. The problem
+// here at converting it back is, that also words starting with &quot;*&quot; can be
+// defined in the same color group and now these words are mixed with the
+// substrings. So the substring words must be extracted from the words
+// starting with &quot;*&quot;.</span>
+Find RegExp &quot;^*^*__&quot;
+IfFound
+Key LEFT ARROW
+Key LEFT ARROW
+Key LEFT ARROW
+Key LEFT ARROW
+&quot;
+&quot;
+Key UP ARROW
+Key END
+IfColNum 1
+Key DEL
+Else
+Key BACKSPACE
+EndIf
+Loop
+Find RegExp &quot;^*^*__[~ ^p]+&quot;
+IfNotFound
+ExitLoop
+EndIf
+EndLoop
+Key RIGHT ARROW
+Key LEFT ARROW
+&quot;
+&quot;
+Key DEL
+Top
+Find RegExp &quot;%^*^*__&quot;
+Replace All &quot;^*^* &quot;
+Find RegExp &quot;^*^*__&quot;
+Replace All &quot;&quot;
+EndIf
+
+<span class="green">// Also HTML (starting with &quot;&lt;&quot; or &quot;&lt;/&quot;) and LATEX specific words
+// (starting with &quot;\&quot;) must be reconverted back to their original
+// definition. If a language is HTML_LANG (XML_LANG) or LATEX_LANG
+// is defined at column 1 line 2 and 3 (&quot;0&quot; = FALSE, &quot;1&quot; = TRUE).</span>
+Top
+Key DOWN ARROW
+IfCharIs &quot;1&quot;
+Find RegExp &quot;^([~ ^p]+^)_&lt;/&quot;
+Replace All &quot;&lt;/^1&quot;
+Find RegExp &quot;^([~ ^p]+^)&gt;_&lt;&quot;
+Replace All &quot;&lt;^1&quot;
+Find RegExp &quot;^([~ ^p]+^)&lt;_&lt;&quot;
+Replace All &quot;&lt;^1&gt;&quot;
+EndIf
+Key DOWN ARROW
+IfCharIs &quot;1&quot;
+Find RegExp &quot;^([~ ^p]+^)__^\&quot;
+Replace All &quot;^\^1&quot;
+EndIf</pre>
+
+
+<div><hr></div>
+
+
+<p id="SortLanguage">MACRO <strong>SortLanguage</strong></p>
+
+<pre>InsertMode
+ColumnModeOff
+HexOff
+UnixReOff
+
+<span class="green">// <span class="maroon">2006-04-02:</span> Set cursor to the end of the current line and check if it
+// is a blank line or a line which only contains spaces, tabs and form feeds
+// which are removed with a loop solution because the macro code sequence:
+// &nbsp;&nbsp;Key RIGHT ARROW
+// &nbsp;&nbsp;Find RegExp Up &quot;[ ^t^b]+&quot;
+// &nbsp;&nbsp;Delete
+// does not work (bug of find command). If the current line is a blank line,
+// the cursor is set in a loop to the end of the next line until either a
+// non-blank line is found or the end of the file is reached.</span>
+Loop
+Key END
+IfEof
+ExitLoop
+EndIf
+IfColNum 1
+Key DOWN ARROW
+Else
+Key LEFT ARROW
+IfCharIs 32
+Key DEL
+Else
+IfCharIs 9
+Key DEL
+Else
+IfCharIs 12
+Key DEL
+Else
+ExitLoop
+EndIf
+EndIf
+EndIf
+EndIf
+EndLoop
+
+<span class="green">// <span class="maroon">2006-02-19:</span> The following code section is rewritten to fix the problem
+// with selecting the wrong language definition if the words of the last
+// language definition in the current file with more than 1 language
+// definitions should be sorted.
+// Find start of current language definition and exit macro if not found.
+// The cursor is set to the end of the current line before searching down
+// to next language definition. This makes sure that if cursor is already
+// at start of the language definition, not the wrong language definition
+// is later selected. If next language definition is found, set cursor
+// back at start of this language definition line. Now search up for the
+// language definition and if found set the cursor to start of this line.
+// <span class="maroon">2006-04-17:</span> Insert macro command <span class="red">UnixReOn</span> or <span class="red">PerlReOn</span> before command
+// <span class="red">ExitMacro</span> if you prefer UNIX or Perl compatible regular expressions.</span>
+Find MatchCase RegExp &quot;%/L[1-9][0-9]++*File &quot;
+IfFound
+Key HOME
+EndIf
+Find MatchCase RegExp Up &quot;%/L[1-9][0-9]++*File &quot;
+IfNotFound
+ExitMacro
+EndIf
+Key HOME
+
+<span class="green">// <span class="maroon">2006-02-19:</span> This language selecting code block with removing the
+// blank lines after copying to the new temp file is completely new.
+// The cursor is at start of the line of the current language definition.
+// The macro should select everything from here to next language definition
+// or end of the file. But this would only select the language definition
+// of the current language if the cursor is at the start of the line. So
+// the cursor must be moved right once. The '/' of /Ln is not selected
+// by this new method which must be taken into consideration twice at
+// the following macro code.</span>
+Key RIGHT ARROW
+StartSelect
+Find MatchCase RegExp Select &quot;%/L[1-9][0-9]++*File &quot;
+IfSel
+Key HOME
+Else
+SelectToBottom
+EndIf
+Clipboard 9
+Copy
+EndSelect
+
+<span class="green">// All lines of the language definition including blank lines except first
+// character ('/') is now copied into clipboard 9. The macro now creates
+// a new temp file, pastes the lines, removes all trailing spaces, deletes
+// all blank lines (in a loop because of a bug in v10.xx of UltraEdit) and
+// adds a single empty line at end of the file if the last line is already
+// terminated with a line break or adds 2 line breaks, if the last line
+// is not terminated with a line break.
+// <span class="maroon">2006-04-17:</span> Inserted UnixMacToDos to create always a new DOS file.</span>
+NewFile
+UnixMacToDos
+Paste
+Top
+TrimTrailingSpaces
+Loop
+Find &quot;^p^p&quot;
+Replace All &quot;^p&quot;
+IfNotFound
+ExitLoop
+EndIf
+EndLoop
+Bottom
+IfColNum 1
+&quot;
+&quot;
+Else
+&quot;
+
+&quot;
+EndIf
+Top
+
+<span class="green">// Check case sensitivity, HTML and LATEX language definitions for
+// later correct sort according to these settings. Because the macro
+// language does not support variables, the first three lines are
+// used temporary for information storage and cut to clipboard 9.
+// <span class="maroon">2006-02-19:</span> Add missing '/' at start of language definition line
+// and set cursor back to top of file before searching for the keywords.
+// <span class="maroon">2006-04-02:</span> Search also for wrong written Nocase and fix it. And
+// search also for XML_LANG which is handled by UE/UES like HTML_LANG.</span>
+&quot;0...Nocase
+0...HTML_LANG
+0...LATEX_LANG
+/&quot;
+Top
+Find RegExp &quot;%/L[1-9][0-9]++*Nocase&quot;
+IfFound
+Key END
+Find Up &quot;Nocase&quot;
+Replace &quot;Nocase&quot;
+OverStrikeMode
+Top
+&quot;1&quot;
+EndIf
+OverStrikeMode
+Top
+Find MatchCase RegExp &quot;%/L[1-9][0-9]++*HTML_LANG&quot;
+IfFound
+Top
+Key DOWN ARROW
+&quot;1&quot;
+EndIf
+Top
+Find MatchCase RegExp &quot;%/L[1-9][0-9]++*XML_LANG&quot;
+IfFound
+Top
+Key DOWN ARROW
+&quot;1&quot;
+EndIf
+Top
+Find MatchCase RegExp &quot;%/L[1-9][0-9]++*LATEX_LANG&quot;
+IfFound
+Top
+Key DOWN ARROW
+Key DOWN ARROW
+&quot;1&quot;
+EndIf
+InsertMode
+Top
+StartSelect
+Key DOWN ARROW
+Key DOWN ARROW
+Key DOWN ARROW
+EndSelect
+Cut
+
+<span class="green">// A second temp file is required for sorting the words which is opened here
+// once outside the following color group sorting loop. Clipboard 8 is used
+// now for copying data.
+// <span class="maroon">2006-04-17:</span> Inserted UnixMacToDos to create always a new DOS file.
+// <span class="maroon">2011-06-13:</span> Loop count increased from 8 to 20 for up to 20 color groups.</span>
+NewFile
+UnixMacToDos
+NextWindow
+Clipboard 8
+Loop 20
+
+<span class="green">// Selecting all words of current group and copy it to second temp file.
+// It is possible that a color group is defined but does not contain
+// any words. In this case the group is ignored. The selecting search
+// should also be possible with a single &quot;^{%/C[1-9][0-9]++^}^{^p$^}&quot;
+// search, but this is not working at an empty color group (bug ?).
+// <span class="maroon">2011-06-13:</span> Regular expressions changed for up to 20 color groups.</span>
+Find MatchCase RegExp &quot;%/C[1-9][0-9]++&quot;
+IfNotFound
+ExitLoop
+<span class="green">// <span class="maroon">2006-11-19:</span> Fixed wrong command <span class="red">Else</span> to <span class="red">EndIf</span>.</span>
+EndIf
+Key HOME
+Key DOWN ARROW
+Find MatchCase RegExp Select &quot;%/C[1-9][0-9]++&quot;
+IfNotFound
+Find MatchCase RegExp Select &quot;^p$&quot;
+EndIf
+StartSelect
+Key HOME
+EndSelect
+IfSel
+Copy
+PreviousWindow
+Paste
+Top
+
+<span class="green">// Remove trailing spaces and remove &quot;// &quot; which marks lines with words
+// beginning with '/'. Then expand all substring definitions with &quot;**__&quot;
+// instead of a single &quot;** &quot; at start of the line. This is done with a
+// submacro because loop nesting is not possible in UE macro language.</span>
+TrimTrailingSpaces
+Find RegExp &quot;%// &quot;
+Replace All &quot;&quot;
+PlayMacro 1 &quot;ExpandSubstring&quot;
+
+<span class="green">// Now LATEX and HTML specific reformatting is done. For LATEX words
+// starting with backslash append the backslash at the end of each word
+// and remove the backslash at the beginning. For HTML do the same with
+// &quot;&lt;&quot; and &quot;&lt;/&quot;.</span>
+Top
+Clipboard 9
+Paste
+Key UP ARROW
+IfCharIs &quot;1&quot;
+Find RegExp &quot;^\^([~ ^p]+^)&quot;
+Replace All &quot;^1__^\&quot;
+EndIf
+Top
+Key DOWN ARROW
+IfCharIs &quot;1&quot;
+Find RegExp &quot;&lt;/^([~ ^p]+^)&quot;
+Replace All &quot;^1_&lt;/&quot;
+Find RegExp &quot;&lt;^([~ ^p]+^)&gt;&quot;
+Replace All &quot;^1&lt;_&lt;&quot;
+Find RegExp &quot;&lt;^([~_/ ^p][~ ^p]++^)&quot;
+Replace All &quot;^1&gt;_&lt;&quot;
+EndIf
+Clipboard 8
+
+<span class="green">// Now convert all spaces to line breaks to get only 1 word per line.
+// </span><span class="maroon">2005-04-27:</span> Find &quot; &quot;<span class="green"> is replaced by following command to fix
+// problem with more than one space between the words.</span>
+Find RegExp &quot;[ ^t]+&quot;
+Replace All &quot;^p&quot;
+
+<span class="green">// Sort all lines except the first 3 lines with the variables according
+// to the case sensitivity specified for the language and reconvert
+// special words back to original definition.</span>
+Top
+IfCharIs &quot;0&quot;
+Key DOWN ARROW
+Key DOWN ARROW
+Key DOWN ARROW
+SelectToBottom
+SortAsc RemoveDup 1 -1 0 0 0 0 0 0
+EndSelect
+Top
+Key DOWN ARROW
+Key DOWN ARROW
+Key DOWN ARROW
+PlayMacro 1 &quot;CollectCase&quot;
+Else
+Key DOWN ARROW
+Key DOWN ARROW
+Key DOWN ARROW
+SelectToBottom
+SortAsc IgnoreCase RemoveDup 1 -1 0 0 0 0 0 0
+EndSelect
+Top
+Key DOWN ARROW
+Key DOWN ARROW
+Key DOWN ARROW
+PlayMacro 1 &quot;CollectNocase&quot;
+EndIf
+Top
+PlayMacro 1 &quot;ReconvertWords&quot;
+
+<span class="green">// Delete the 3 variable lines and copy the now sorted words of the
+// current color group back to the first temp file with replacing
+// the unsorted definitions.</span>
+Top
+StartSelect
+Key DOWN ARROW
+Key DOWN ARROW
+Key DOWN ARROW
+EndSelect
+Delete
+SelectAll
+Cut
+NextWindow
+Paste
+EndIf
+EndLoop
+
+<span class="green">// Discard second temp file. <span class="maroon">2006-11-19:</span> Clear clipboard 8 is done later.</span>
+PreviousWindow
+CloseFile NoSave
+
+<span class="green">// Copy now whole sorted language definition with clipboard 9 back to
+// the source file with replacing the unsorted language definition and
+// discard first temp file.
+// <span class="maroon">2006-02-19:</span> The '/' at start of the language definition is not selected
+// in the source wordfile, but it was inserted in the temp file. So it must
+// be removed here before copying and pasting the sorted language definition
+// over the still existing selection in the source wordfile.
+// <span class="maroon">2006-11-19:</span> Before copying whole sorted language definition copy
+// the language definition only to clipboard 8 - see below why.
+// <span class="maroon">2006-12-05:</span> In the temp file the language definition line does
+// not start with a slash.
+// <span class="maroon">2007-08-02:</span> It's possible under certain conditions that UltraEdit does not
+// recognize that the cursor is already at top of the file after deleting the
+// slash and before executing the regular expression find. As workaround a
+// space is inserted at top of the file, then the slash is deleted and last
+// the inserted space too. That helps UltraEdit to synchronize and the Find
+// then really always finds the language number and language name.</span>
+
+Top
+&quot; &quot;
+Key DEL
+Key BACKSPACE
+Find MatchCase RegExp &quot;%L[1-9][0-9]++&quot;*&quot;&quot;
+Copy
+Clipboard 9
+SelectAll
+Copy
+CloseFile NoSave
+
+<span class="green">// <span class="maroon">2006-11-19:</span> Depending on the version of UltraEdit/UEStudio and the config
+// option &quot;Move to nearest left tab after current tab is closed&quot; and the
+// file tab order now either the wordfile with the still selected unsorted
+// language definition has the focus or a different file. So search in a
+// loop for a file which has a selection and this selection contains the
+// language definition /Lxx&quot;name&quot; which was sorted before. Only now the
+// sorted language definition can be pasted over the unsorted version.</span>
+Clipboard 8
+Loop
+IfSel
+Find MatchCase &quot;^c&quot;
+Replace All SelectText &quot;^c&quot;
+IfFound
+ExitLoop
+EndIf
+EndIf
+NextWindow
+EndLoop
+ClearClipboard
+Clipboard 9
+Paste
+
+<span class="green">// Clean up line breaks at end of file if necessary, save wordfile
+// and set cursor to begin of the sorted language definition.
+// Inserting a space and deleting it immediately is necessary here
+// because of a bug of UE (never finds a non white character here).</span>
+&quot; &quot;
+Key BACKSPACE
+Find RegExp &quot;[~ ^t^p]&quot;
+IfNotFound
+Find RegExp Up &quot;[~ ^t^p]&quot;
+EndSelect
+Key RIGHT ARROW
+SelectToBottom
+Delete
+EndIf
+ClearClipboard
+Clipboard 0
+
+<span class="green">// Add this command to enable auto-saving of the modified wordfile after
+// sorting. By default the SortLanguage macro does not contain this Save
+// command.</span>
+<strong>Save</strong>
+Find MatchCase RegExp Up &quot;%/L[1-9][0-9]++*File &quot;
+
+<span class="green">// <span class="maroon">2006-02-19:</span> For v10.xx of UltraEdit the current find selection
+// must be ended here or the '/' will be selected after Key HOME.</span>
+EndSelect
+Key HOME
+
+<span class="green">// <span class="maroon">2006-04-17:</span> Insert macro command <span class="red">UnixReOn</span> or <span class="red">PerlReOn</span> here at the end
+// of the macro if you prefer UNIX or Perl compatible regular expressions.</span></pre>
+
+</body>
+</html>

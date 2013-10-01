@@ -1,0 +1,349 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+ <title>Description of the test for invalid words macro for UltraEdit/UEStudio</title>
+ <meta name="date" content="2009-05-02">
+ <meta name="author" content="Mofi">
+ <meta http-equiv="content-language" content="en">
+ <meta http-equiv="content-style-type" content="text/css">
+ <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+ <style type="text/css">
+  body    { font-family:Arial }
+  strong  { font-weight:bold  }
+  .red    { color:red    }
+  .green  { color:green  }
+  .maroon { color:maroon }
+  p.top6  { margin-top:6px    }
+  p.bot6  { margin-bottom:6px }
+  p.both6 { margin-top:6px; margin-bottom:6px }
+  div     { margin:25px 0px; height:3px }
+  hr      { color:black; background-color:black; height:2px; border:0px solid white }
+  pre     { font-family:'Courier New'; font-size:12pt }
+  h2      { font-size:120%; font-weight:bold }
+  .tab    { color:gray; font-size:9pt }
+ </style>
+</head>
+
+<body>
+
+<h2>Introduction</h2>
+
+<p><strong>Hello wordfile creator!</strong></p>
+
+<p>Here is an add-on macro for the <a href="SortLanguage.htm">syntax highlighting sort</a> and the
+<a href="TestForDuplicate.htm">test for duplicate words</a> macro set. During execution of the macro
+<strong>SortLanguage</strong> duplicate words within a color group are automatically removed. And
+the macro <strong>TestForDuplicate</strong> finds and reports duplicate words in different color groups
+which then can be removed by the user. But both do not find and report invalid word definitions.</p>
+
+<p>The macro <strong>TestForInvalid</strong> is designed to test a language definition for invalid
+words in all color groups and creating a report. The macro TestForInvalid never modifies the wordfile
+with the language definition. It only creates a report of possibly found invalid words in a new
+temporary file which is never saved. So this macro does not change anything on your hard disk.</p>
+
+<p>The macro TestForInvalid can be run before or after the macros SortLanguage and TestForDuplicate.
+But I suggest using TestForInvalid after the other macros to decrease the number of possible invalid
+words if those invalid words were additionally duplicate.</p>
+
+<p>Invalid words are not really bad because they have no bad influence on the general syntax
+highlighting. The only problem with invalid words is that a word is maybe not highlighted with
+the color expected. And maybe invalid words decreases the speed of the syntax highlighting engine
+of UE/UES a little because of the higher amount of words.</p>
+
+
+<div><hr></div>
+
+
+<h2>What is an invalid word?</h2>
+
+<p>To answer that question first it must be explained and understood how the syntax highlighting
+engine of UltraEdit and UEStudio works.</p>
+
+<p>A text file is nothing else than a more or less large sequence of characters. Some rules are
+necessary to be able to interpret this sequence of&nbsp;characters and convert it into something
+which can be understood by you (your brain) or a program like UE/UES or a compiler. For programming
+languages there are 4 main rules which work all according to the same principle: lines, comments,
+strings and delimiters.</p>
+
+<p class="maroon"><br>Lines</p>
+
+<p>When a text file is read by a program the first rule used is: scan for line termination
+character(s) to split up the big sequence of characters into smaller parts called "lines".
+But this is already more complicated as it might be because there are 3 standards:</p>
+
+<ul>
+ <li>For MS-<strong>DOS</strong> and Windows text files the character sequence carriage
+  return with a following line-feed is used as line termination sequence.</li>
+ <li>For <strong>UNIX</strong> text files the line-feed character is enough to split up
+  the content of a text file into lines.</li>
+ <li>And for <strong>MAC</strong> text files the carriage return character specifies the
+  end of a line.</li>
+</ul>
+
+<p>The character carriage return has the byte code 13 decimal or 0D hexadecimal and
+is often specified in strings as \r or ^r.<br>
+The character line-feed has the byte code 10 decimal or 0A hexadecimal and is often
+specified in strings as \n or ^n.</p>
+
+<p>So a general text editing program like UltraEdit must be already capable to handle 3 different
+formats of a text file. But that split up into lines becomes even more complicated if a text file
+contains more than 1 of the 3 formats above. This is often caused by a programming error like on
+Windows operating systems opening a file for write in text mode, but printing to the file with
+&quot;\r\n&quot; which causes that the file then contains 2 carriage returns before the line-feed
+instead of only&nbsp;1. In text mode every \r\n is automatically converted into a \n when reading the
+sequence of characters from a text file. And when writing to a text file opened in text mode, every
+\n is automatically written as \r\n. So if the programmer uses in the program code \r\n when writing
+to a text file in text mode, the program writes \r\r\n and the line ending detection problems start.
+Also in PHP, Perl and other scripts for HTML files the line termination is often mixed because of
+wrong handling by the script developer. And also using the wrong FTP transfer mode when transferring
+text files with FTP between UNIX servers and Windows computers is a source of creating text files
+with line terminations which follow none of the 3 standards above.</p>
+
+<p class="maroon"><br>Comments</p>
+
+<p>A comment is a sequence of characters which should be ignored by the program when interpreting
+the content of a file. But how to identify in the big sequence of characters of a file now such a
+comment character sequence, even when this file is often already split up into lines?</p>
+
+<p class="bot6">Most comments are specified by special character sequences like</p>
+
+<p class="both6"><span class="green">/*</span> &nbsp;&nbsp;for Block Comment On and<br>
+<span class="green">*/</span> &nbsp;&nbsp;for Block Comment Off or<br>
+<span class="green">//</span> &nbsp;&nbsp;for Line Comment On</p>
+
+<p class="top6">for example for C/C++. The rule is quite simple and best explained with an example.</p>
+
+<p>When <span class="green">/*</span> is found in the sequence of characters in a file, a block
+comment starts and it ends when <span class="green">*/</span> is found. For line comments the same
+rule is used. The only difference is that the Comment Off character sequence is predefined with
+the line termination character(s).</p>
+
+<p>This simple rule for comments can be further extended. Some interpreters for example support nesting
+block comments where several Block Comment On/Off sequences can be inside a block comment and counted by
+the program which reads it to find the Block Comment Off sequence which belongs to the first Block Comment
+On sequence instead of ending the block comment on first occurrence of the Block Comment Off sequence.</p>
+
+<p>For line comments there are sometimes also several other additional rules. Most of such extended rules
+for line comments exist when the Line Comment On is a single character instead of a character sequence.
+The developer of such a language definition maybe thought, it is more easily to use special rules instead
+of simply add a second character to the Line Comment On definition to avoid misinterpretation when reading
+the character sequence of the file. I personally often cannot follow this thoughts and I'm a programmer.</p>
+
+<p class="maroon"><br>Strings</p>
+
+<p>After splitting up the character sequence of a file into lines and editing out those parts which are
+comments and so are ignored for most other evaluations, the next step is often to find strings. A string
+is a sequence of characters which has a special meaning for various reasons and so the characters of a
+string should be always hold together and care must be taken when modifying this sequence. But how to
+identify in the number of remaining character sequences in a file such string character sequences?</p>
+
+<p>Wherever strings are possible there is always at least 1 special character which identifies the
+start and end of a string character sequence. Often used is the double quote character. When this
+character is found in the sequence of characters in a file, a string starts, and it ends when the
+same character is found again. This simple rule can be extended by several other rules like a second
+string identifying character like the single quote character or an escape character (for example the
+backslash) which means that after the starting string identifying character the character following
+the escape character never ends the string sequence. Some languages also have the rule that a string
+sequence must end before the line termination character(s). For those languages <strong>DisableMLS</strong>
+(disable multi-line string) should be used. For other languages like HTML or C/C++ multi-line strings are
+possible (often with an extra rule) and for those languages <strong>EnableMLS</strong> can be used.</p>
+
+<p class="maroon"><br>Delimiters</p>
+
+<p>After applying the rules for lines, comments and strings there are still enough character sequences
+which must be further divided into many smaller parts which human call "words". This is done by using
+the same method as above. A set of characters has to be defined which delimits those character sequences
+into words. Everything between 2&nbsp;delimiters is a word. Do you understand what the sentence before
+means?</p>
+
+<p class="red">The delimiter characters define what a word is and not the characters of a word!</p>
+
+<p>For example look on <span class="green">highlighting</span>. I'm sure, you will read this as 1 word. But
+why, because it contains also the words <span class="green">high</span> and <span class="green">light</span>
+which you also know as words? You interpret it as 1&nbsp;word because of the delimiter space on the left
+side and the delimiter point on the right side. So never forget, the delimiters define what a word is.
+Without the delimiters the character sequences of a text file cannot be read and interpreted by you or
+a program. Look on the 'C' code example below:</p>
+
+<p>printf<span class="red">(</span><span class="maroon">"Found %u error%s!\n"</span><!--
+--><span class="red">,</span>errorcount<span class="red">,</span><span class="green">/* no 's'
+by exactly 1 error */</span>errorcount<span class="red">==</span>1<span class="red">?</span><!--
+--><span class="maroon">""</span><span class="red">:</span><span class="maroon">"s"</span><!--
+--><span class="red">);</span></p>
+
+<p>This is a valid code line for a 'C' compiler and 'C' programmers can also read it with syntax
+highlighting. But it would be much more difficult to read for 'C' programmers without syntax
+highlighting because our brain is trained to use only a small set of delimiters which is needed
+for reading text. The code example above is far away looking like a normal text.</p>
+
+<p><br>Back to the question of this section: What is an invalid word?</p>
+
+<p>Now the answer should be simple: Every character sequence in the color groups which contains
+a delimiter character in combination with other delimiter characters or normal characters. The
+delimiters specify what a word is and of course every delimiter itself is also a single character
+word. So it is simply not possible that a delimiter character is at start (see exception below),
+in the middle or the end of a word. And 2 or more delimiters cannot be combined to a word.</p>
+
+
+<div><hr></div>
+
+
+<h2>Which characters should be specified as delimiters for syntax highlighting?</h2>
+
+<p>Which characters should be specified as delimiters for syntax highlighting depends on the rules
+the program used to read the text file you write and edit. As a general rule the space character
+must be specified as delimiter character. This is needed because the space character is the main
+delimiter character for the wordfile itself which is also a text file. And that answers the
+following question which is often asked by users not understanding how the syntax highlighting
+engine works:</p>
+
+<p class="red">Is it possible to define a word with a space?</p>
+
+<p>No, that is not possible because the space is a delimiter for wordfiles and the delimiter
+characters specify what a word is. So it is not possible to define a character sequence with
+a space character to be interpreted as a word.</p>
+
+<p>Often also a delimiter and often forgotten is the tab character which is a not visible character like
+the space. Don't forget to specify the tab character in the set of delimiters. How the tab character is
+interpreted and displayed can vary. It depends on the tab stop value(s) for the current file. Or it is
+like for HTML always displayed as a single space (except in a preformatted text area). Be careful when
+copying a wordfile definition from the browser window into a text file. Make sure you have a real tab
+character in the set of delimiter characters after pasting the text into the text file.</p>
+
+<p>The line termination characters carriage return and line-feed are for text files
+always delimiter characters and cannot be specified extra as delimiter characters.</p>
+
+<p>The characters which specify block and line comments and strings should be also always
+defined as delimiter characters. This is not absolutely necessary because the text file is
+interpreted in the order written above, but it should be done.</p>
+
+<p>Operators and braces of any kind are for programming languages also delimiter characters. A
+color group with operators contains often also invalid words because of a combination of delimiter
+characters. For example <span class="red">==</span> or <span class="red">!=</span> are invalid words
+if the equal sign and the exclamation mark are delimiters. Such operator specification mistakes in
+the word list for syntax highlighting is often not detected because the <span class="red">=</span>
+and the <span class="red">!</span> are also specified in the word list as single character in the
+same color group and so nobody can see that for example <span class="red">!=</span> is highlighted
+with the color of <span class="red">!</span> and the color of <span class="red">=</span> and the
+combined character sequence <span class="red">!=</span> is simply useless in the list of words.
+Remember, the delimiter characters specify what a word is.</p>
+
+<p>Something special is the usage of marker characters with a definition like:</p>
+
+<p class="green">/Marker Characters = "[]%%"</p>
+
+<p>Marker characters are a variant of strings. Every pair of marker character specifies a sequence
+of characters to be highlighted with one color. But in comparison with strings the start and end
+character for such a special highlighted or marked character sequence must not be identical like
+<span class="red">[]</span> above shows. But since UE&nbsp;v9.20 marker characters can have the
+same start and end characters like <span class="red">%%</span> above shows too. A character sequence
+highlighted with a marker string cannot span over a line termination (like single-line strings).</p>
+
+<p>The marker characters should be also specified as delimiter characters.</p>
+
+<p>And often most other special characters in the ASCII table are used as delimiters too. You
+can also use ANSI characters as delimiters, but not Unicode characters because the wordfile
+must be an ASCII/ANSI file. Here is a very often used delimiters definition:</p>
+
+<p class="green">/Delimiters = ~!@%^&amp;*()-+=|\/{}[]:;&quot;'<> ,<span class="tab">tab</span>.?</p>
+
+<p>Note: <span class="tab">tab</span> it the line above is in real the tab character.</p>
+
+<p>The delimiter characters are always case-sensitive independent of the keyword <strong>Nocase</strong>
+in the language definition line. But this is important only for letters which are normally not used as
+delimiters.</p>
+
+
+<div><hr></div>
+
+
+<h2>Usage of macro TestForInvalid</h2>
+
+<p>The usage of the macro TestForInvalid is as simple as for macro SortLanguage or TestForDuplicate.
+Set the cursor anywhere within the language definition you want to test for invalid words and start
+the macro <strong>TestForInvalid</strong>. That's all, lean back and look what's going on.</p>
+
+<p>If the macro finds no invalid words the report contains only following line:</p>
+
+<pre>Congratulations! No invalid words found.</pre>
+
+<p>If the macro finds invalid words the report looks like the report below
+for language PHP in standard wordfile.txt of UltraEdit v13.00a:</p>
+
+<pre>Sorry! Found following invalid words:
+
+!=                                      <- contains the delimiter:  =
+&amp;&amp;                                      <- contains the delimiter:  &amp;
+*=                                      <- contains the delimiter:  =
+++                                      <- contains the delimiter:  +
++=                                      <- contains the delimiter:  =
+--                                      <- contains the delimiter:  -
+-=                                      <- contains the delimiter:  =
+.=                                      <- contains the delimiter:  =
+/=                                      <- contains the delimiter:  =
+<=                                      <- contains the delimiter:  =
+==                                      <- contains the delimiter:  =
+||                                      <- contains the delimiter:  |
+class.com                               <- contains the delimiter:  .
+class.dir                               <- contains the delimiter:  .
+class.dotnet                            <- contains the delimiter:  .
+class.variant                           <- contains the delimiter:  .</pre>
+
+<p>Now you have to look at this report and you should remove the invalid
+word in the wordfile or modify the set of delimiter characters.</p>
+
+<p>For correct identifying invalid word definitions in the list of words the macro has to apply
+some special rules.</p>
+
+<ol>
+ <li>The (visible) delimiters can be also specified in a color group as single character
+  words. But a combination of delimiter characters is not valid which is a frequent mistake
+  in the color group for operators (see example report above).</li>
+ <li>Since UE v10.00 it is allowed that a word definition starts with a delimiter character like the
+  HTML entities in standard wordfile.txt which starts with <span class="red">&amp;</span> although
+  this character is also a delimiter character. The <span class="red">&amp;</span> must be like the
+  <span class="red">;</span> a delimiter or the entities would not be highlighted correct. But delimiters
+  are not allowed anywhere else except as first character. That's the reason why the semicolon of the
+  HTML entities is specified separate although that means all semicolons in the text of HTML files are
+  then highlighted with the color of HTML entities, not only when found at the end of a HTML entity.</li>
+ <li>For language definitions which contain the case-sensitive keywords <strong>HTML_LANG</strong>
+  or <strong>XML_LANG</strong> in the first line, words starting with <span class="red">&lt;</span>
+  or <span class="red">&lt;/</span>, and/or ending with <span class="red">&gt;</span> or
+  <span class="red">=</span> are allowed, even when the 4&nbsp;characters are also delimiters.</li>
+ <li>Every marker character pair must be specified like a word in a color group,
+  although the marker characters can and should be also delimiter characters.</li>
+</ol>
+
+<p>If you are interested in how the macro handles these 4 rules, read the comments for macro
+<strong>TestForInvalid</strong> in the macro code file <strong>SyntaxTools.uem</strong>.</p>
+
+<p>You can assign a hot key for <strong>TestForInvalid</strong>, if you use it frequently.</p>
+
+<p>The macro uses the UltraEdit style regular expression engine. If you prefer the UNIX or Perl compatible
+regular expression engine you have to insert the macro command <span class="red">UnixReOn</span> or
+<span class="red">PerlReOn</span> before every macro exit. Search for <strong>UnixReOn</strong> in
+the file <strong>SyntaxTools.uem</strong> to find the 4&nbsp;exit positions. The macro source code
+is not written here.</p>
+
+<p>To use this macro you need at least v8.20 of UltraEdit or UEStudio. The macro
+was developed and tested with UE v10.10c, v11.20a, v12.20b+1 and v13.00a+2.</p>
+
+<p>If you find any bugs or have other related questions, post it at
+<a href="http://www.ultraedit.com/forums/viewtopic.php?t=443">http://www.ultraedit.com/forums/viewtopic.php?t=443</a>.</p>
+
+
+<div><hr></div>
+
+
+<h2>Disclaimer</h2>
+
+<p>THIS MACRO IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+STATUTORY OR OTHERWISE, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT,
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO USE, RESULTS AND PERFORMANCE
+OF THE MACRO IS ASSUMED BY YOU AND IF THE MACRO SHOULD PROVE TO BE DEFECTIVE, YOU ASSUME THE ENTIRE COST
+OF ALL NECESSARY SERVICING, REPAIR OR OTHER REMEDIATION. UNDER NO CIRCUMSTANCES, CAN THE AUTHOR BE HELD
+RESPONSIBLE FOR ANY DAMAGE CAUSED IN ANY USUAL, SPECIAL, OR ACCIDENTAL WAY OR BY THE MACRO.</p>
+
+</body>
+</html>

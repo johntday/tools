@@ -1,0 +1,88 @@
+/L20"PowerTerm Scripts" Line Comment = # Escape Char = \ String Chars = "' File Extensions = PSL
+/Delimiters = ~!@%^$&*()+=|\/{}[]:;"'<> ,	?
+/Function String = "proc ^([a-z,_,0-9]+^) "
+/Indent Strings = "{"
+/Unindent Strings = "}"
+/C1"Switch/Permission"
+-all -ascii -code -command -decreasing -errorcode -exact -glob -increasing
+-indices -integer -nocase -nocomplain -nonewline -real -regexp
+APPEND
+CREAT
+EXCL
+NOCTTY NONBLOCK
+PSL_BREAK PSL_CONTINUE PSL_RETURN
+RDONLY RDWR
+TRUNC
+WRONLY
+/C2"Reserved words"
+break
+continue
+default
+for
+if
+return
+switch
+while
+/C3"Functions"
+append array
+cd clear-screen close concat cursor
+dde display
+eof eval exec expr
+file flush foreach format
+gets glob global
+incr info
+join
+key
+lappend lindex linsert list llength lrange lreplace lsearch lsort
+menu message
+open open-setup-file
+proc puts pwd
+read regexp regsub rename run
+scan screen screen-rect seek send session set split string 
+tell time
+unset uplevel upvar
+wait window
+/C4"Parameters"
+anymore args atime
+baud-rate body
+cmdcount comm-type commands compare complete current
+dirname donesearch
+end error execute exists extension
+first
+globals
+hide host-name
+index initiate isdirectory isfile
+last length level library locals
+match minimize modify mtime
+namens nextelement
+ok 
+parity poke port-number position procs protocol-type
+range record request restore restore rootname
+script seconds server-name service-name session-name size
+start startsearch stop-bits system
+tail terminate tolower toupper trim trimleft trimright type
+user-name
+value vars
+/C5"Delimiters"
+!
+$
+&
+(
+)
+*
++
+,
+-
+.
+// /
+:
+;
+<
+=
+>
+[
+]
+{
+|
+}
+~

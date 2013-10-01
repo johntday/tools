@@ -1,0 +1,722 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+ <title>Description of the test for duplicate words macro for UltraEdit/UEStudio</title>
+ <meta name="date" content="2011-06-13">
+ <meta name="author" content="Mofi">
+ <meta http-equiv="content-language" content="en">
+ <meta http-equiv="content-style-type" content="text/css">
+ <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+ <style type="text/css">
+  body    { font-family:Arial }
+  strong  { font-weight:bold  }
+  .red    { color:red    }
+  .blue   { color:blue   }
+  .green  { color:green  }
+  .maroon { color:maroon }
+  div     { margin:25px 0px; height:3px }
+  hr      { color:black; background-color:black; height:2px; border:0px solid white }
+  pre     { font-family:'Courier New'; font-size:105% }
+  h2      { font-size:120%; font-weight:bold }
+ </style>
+</head>
+
+<body>
+
+<h2>Introduction</h2>
+
+<p><strong>Hello wordfile creator!</strong></p>
+
+<p>Here is an add-on macro set for the <a href="SortLanguage.htm">syntax highlighting sort macro set</a>.
+During execution of the macro <strong>SortLanguage</strong> duplicate words within a color group are
+automatically removed. But words existing more than once in different color groups are not detected
+by the macro SortLanguage.</p>
+
+<p>This macro set with the main macro <strong>TestForDuplicate</strong> is designed to test a language
+definition for duplicate words in different color groups and creating a report. The macro TestForDuplicate
+never modifies the wordfile with the language definition. It only creates a report of possibly found
+duplicate words in a new temporary file which is never saved. So this macro set does not change
+anything on your hard disk.</p>
+
+<p>TestForDuplicate recognizes the language definition keyword <strong>Nocase</strong> for the test.
+But in contrast to the SortLanguage macro it does not detect and correct a wrong written Nocase
+specification. If Nocase is written wrong the words of the language definition are interpreted
+case sensitive by the macro TestForDuplicate as UE and UES also do.</p>
+
+<p>The macro TestForDuplicate can be run before or after the macro SortLanguage. But I suggest
+using TestForDuplicate after macro SortLanguage because SortLanguage corrects the keyword Nocase
+and also automatically removes duplicate words within a color group.</p>
+
+<p>Duplicate words in different color groups are not really bad because they have no bad influence
+on the general syntax highlighting. The only problem with duplicate words is that a word is maybe
+not highlighted with the color expected. And maybe duplicate words decreases the speed of the
+syntax highlighting engine of UE/UES a little because of the higher amount of words.</p>
+
+
+<div><hr></div>
+
+
+<h2>How duplicate words are handled by UE/UES?</h2>
+
+<p>While developing this macro set I checked how UE/UES handles duplicate words and conflicts
+with substring definitions. For better understanding here is an example of a language definition
+and how the words are highlighted in a test file.</p>
+
+<p><strong>Language definition:</strong></p>
+
+<pre>/L20&quot;DuplicateWords&quot; Noquote File Extensions = TXT
+/Delimiters = # ,
+/C1&quot;Red&quot;
+** # p_x w_
+redword
+/C2&quot;Green&quot;
+** p_ w_x
+/C3&quot;Maroon&quot;
+#
+p_keyword p_xkeyword
+redword
+w_keyword w_xkeyword</pre>
+
+<p><br><strong>Content of a test file with resulting syntax highlighting:</strong></p>
+
+<p><span class="red">redword p_xredword w_redword #anyword</span> <span class="maroon">#
+p_keyword p_xkeyword w_keyword w_xkeyword</span> <span class="green">p_greenword</span>
+<span class="red">w_xnotgreen</span></p>
+
+<p><br><strong>Explanation:</strong></p>
+
+<p>The word <span class="red">redword</span> is defined at color 1 and 3. It is ignored at
+color&nbsp;3. So if a word is defined more than once it is always highlighted with the color
+with the lower color number.</p>
+
+<p>All words starting with <span class="red">#</span>, <span class="red">p_x</span> and
+<span class="red">w_</span> are highlighted with color&nbsp;1, except the 5&nbsp;words defined
+at color&nbsp;3. You can see here that UE/UES handles 100% word matches with a higher priority
+than substring definitions even if the words are defined in a color group with a higher number
+than the color group of the substrings.</p>
+
+<p>Last at color&nbsp;2 there are 2 additional substring definitions. The first one
+<span class="green">p_</span> starts like <span class="red">p_x</span> at color 1. So it is not
+surprising that words starting with <span class="red">p_x</span> are highlighted with color&nbsp;1
+if they are not defined as normal words in any of the 20&nbsp;color groups. But all words starting
+not with <span class="red">p_x</span> but with <span class="green">p_</span> are highlighted with
+color&nbsp;2. So if there are multiple substring definitions that one with the lower color number has
+a higher priority. This is the reason why the second substring definition <span class="green">w_x</span>
+at color&nbsp;2 is useless. The substring definition <span class="red">w_</span> at color&nbsp;1 already
+highlights all words starting with <span class="red">w_</span> if the words are not defined as normal
+words in any of the 20&nbsp;color groups.</p>
+
+<p>The macro TestForDuplicate handles rule 1 and 2 correct. Duplicate words are reported. If
+a substring definition also matches a normal word, the macro will accept it without any message
+because it is correct.</p>
+
+<p>A substring match - two or more substrings start with the same characters - is always reported
+by the macro. TestForDuplicate is not capable to find out if the substring definitions which match
+are correct or not. The user has to evaluate it. But I think, such substring matches are very rare.</p>
+
+
+<div><hr></div>
+
+
+<h2>Usage of macro TestForDuplicate</h2>
+
+<p>The usage of the macro TestForDuplicate is as simple as for macro SortLanguage. Set the cursor
+anywhere within the language definition you want to test for duplicate words and start the macro
+<strong>TestForDuplicate</strong>. That's all, lean back and look what's going on.</p>
+
+<p>If the macro finds no duplicate words or matching substrings the report contains only following line:</p>
+
+<pre>Congratulations! No duplicate words found.</pre>
+
+<p>If the macro finds duplicate words or matching substrings the report looks like the report for the
+language definition above:</p>
+
+<pre>Sorry! Found following duplicate words:
+
+** p_ -> in /C2&quot;Green&quot;
+** p_x -> in /C1&quot;Red&quot;
+
+** w_ -> in /C1&quot;Red&quot;
+** w_x -> in /C2&quot;Green&quot;
+
+redword -> in /C1&quot;Red&quot;
+redword -> in /C3&quot;Blue&quot;</pre>
+
+<p>Now you have to look at this report and you should remove the duplicates in the wordfile.</p>
+
+<p><br>All macros should have following properties:</p>
+
+<table cellspacing=0 cellpadding=0 border=0 summary="Required macro properties">
+<tr>
+ <td class="blue">Show Cancel Dialog for this macro</td>
+ <td>&nbsp;...&nbsp;</td><td class="blue">disabled</td><td></td>
+</tr>
+<tr>
+ <td class="blue">Continue if a Find with Replace not found</td>
+ <td>&nbsp;...</td><td><span class="blue">enabled</span> ( &lt;</td><td>UE v13.10a+2)</td>
+</tr>
+<tr>
+ <td class="blue">Continue if search string not found</td>
+ <td>&nbsp;...</td><td><span class="blue">enabled</span> (>=&nbsp;</td><td>UE v13.10a+2)</td>
+</tr>
+<tr>
+ <td class="blue">Hot Key</td>
+ <td>&nbsp;...</td><td class="blue"><em>none</em></td><td></td>
+</tr>
+</table>
+
+<p>You can assign a hot key for <strong>TestForDuplicate</strong>, if you use it frequently.
+Never run the submacros manually!</p>
+
+<p>Remove the <span class="green">green comment lines</span> with the blank line above before copying
+the instructions to the macro edit window. The comments here are only for experts which want to know
+how the macros work.</p>
+
+<p>The macros use the UltraEdit style regular expression engine. If you prefer the UNIX or Perl compatible
+regular expression engine you have to insert the macro command <span class="red">UnixReOn</span> or
+<span class="red">PerlReOn</span> before every macro exit. Search for <strong>UnixReOn</strong> to
+find the 3&nbsp;exit positions.</p>
+
+<p>To use this macro set you need at least v8.20 of UltraEdit or UEStudio.
+The macros were developed and tested with UE v10.10c, v11.20a and v12.20a.</p>
+
+<p>If you find any bugs or have other related questions, post it at
+<a href="http://www.ultraedit.com/forums/viewtopic.php?t=443">http://www.ultraedit.com/forums/viewtopic.php?t=443</a>.</p>
+
+
+<div><hr></div>
+
+
+<h2>Disclaimer</h2>
+
+<p>THIS MACRO SET IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR
+IMPLIED, STATUTORY OR OTHERWISE, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT,
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO USE, RESULTS AND PERFORMANCE
+OF THE MACRO SET IS ASSUMED BY YOU AND IF THE MACRO SET SHOULD PROVE TO BE DEFECTIVE, YOU ASSUME THE
+ENTIRE COST OF ALL NECESSARY SERVICING, REPAIR OR OTHER REMEDIATION. UNDER NO CIRCUMSTANCES, CAN THE
+AUTHOR BE HELD RESPONSIBLE FOR ANY DAMAGE CAUSED IN ANY USUAL, SPECIAL, OR ACCIDENTAL WAY OR BY THE
+MACRO SET.</p>
+
+
+<div><hr></div>
+
+
+<h2>Source code of the macros</h2>
+
+<p>MACRO <strong>FindDupCase</strong></p>
+
+<pre><span class="green">// This macro is a submacro for macro TestForDuplicate. The string to search
+// (input parameter) is already in clipboard 8. The cursor is at start of
+// the line below the line with the word or substring to search for. This
+// line is already marked with a bookmark. Clipboard 9 is the buffer for
+// the lines with duplicate words or substrings found by this submacro.
+// This submacro searches case sensitive (Nocase not present).
+// It first searches from the bookmarked line down to end of the file
+// for the string in clipboard 8. If the string is not found, the word
+// or substring is not duplicate and nothing must be done.
+// If the string is found, the macro sets the cursor to the bookmarked line.
+// Then it searches up for a DOS line termination (CR/LF) and appends it to
+// clipboard 9. This creates a blank line before a new block of duplicate
+// words in the report. The cursor is now again at start of the bookmarked
+// line. With a simple UP the cursor is set at start of the line which
+// contains the search string in clipboard 8. Now it runs in a loop the
+// search and moves all lines with the search string to clipboard 9.
+// After all duplicates were found the cursor is placed at start of
+// the bookmarked line.</span>
+Find MatchCase &quot;^c&quot;
+IfFound
+GotoBookMark
+Find Up &quot;^p&quot;
+Clipboard 9
+CopyAppend
+Clipboard 8
+Key UP ARROW
+Loop
+Find MatchCase &quot;^c&quot;
+IfFound
+Clipboard 9
+SelectLine
+CutAppend
+Clipboard 8
+Else
+ExitLoop
+EndIf
+EndLoop
+GotoBookMark
+EndIf</pre>
+
+
+<div><hr></div>
+
+
+<p>MACRO <strong>FindDupNocase</strong></p>
+
+<pre><span class="green">// This macro is a submacro for macro TestForDuplicate. It comparison
+// to the macro FindDupCase only 1 difference at 2 commands exists: This
+// submacro does not search case sensitive for the string in clipboard 8.
+// This submacro is used if language definition keyword Nocase is present.</span>
+Find &quot;^c&quot;
+IfFound
+GotoBookMark
+Find Up &quot;^p&quot;
+Clipboard 9
+CopyAppend
+Clipboard 8
+Key UP ARROW
+Loop
+Find &quot;^c&quot;
+IfFound
+Clipboard 9
+SelectLine
+CutAppend
+Clipboard 8
+Else
+ExitLoop
+EndIf
+EndLoop
+GotoBookMark
+EndIf</pre>
+
+
+<div><hr></div>
+
+
+<p>MACRO <strong>TestForDuplicate</strong></p>
+
+<pre><span class="green">// The code for selecting the whole language definition at the current
+// cursor position is identical with the macro SortLanguage. So look
+// at the explanation for the macro <a href="SortLanguage.htm#SortLanguage">SortLanguage</a> for this code part.</span>
+InsertMode
+ColumnModeOff
+HexOff
+UnixReOff
+Loop
+Key END
+IfEof
+ExitLoop
+EndIf
+IfColNum 1
+Key DOWN ARROW
+Else
+Key LEFT ARROW
+IfCharIs 32
+Key DEL
+Else
+IfCharIs 9
+Key DEL
+Else
+IfCharIs 12
+Key DEL
+Else
+ExitLoop
+EndIf
+EndIf
+EndIf
+EndIf
+EndLoop
+Find MatchCase RegExp &quot;%/L[1-9][0-9]++*File &quot;
+IfFound
+Key HOME
+EndIf
+Find MatchCase RegExp Up &quot;%/L[1-9][0-9]++*File &quot;
+IfNotFound
+<span class="green">// Insert macro command <span class="red">UnixReOn</span> or <span class="red">PerlReOn</span> here before command
+// <span class="red">ExitMacro</span> if you prefer UNIX or Perl compatible regular expressions.</span>
+ExitMacro
+EndIf
+Key HOME
+Key RIGHT ARROW
+StartSelect
+Find MatchCase RegExp Select &quot;%/L[1-9][0-9]++*File &quot;
+IfSel
+Key HOME
+Else
+SelectToBottom
+EndIf
+Clipboard 9
+Copy
+EndSelect
+
+<span class="green">// After copying the whole language definition to clipboard 9 the cursor
+// should be placed at start of the just copied language definition.
+// This should be possible with a single regular expression search in up
+// direction. But the first search fails if the language definition was
+// selected with command SelectToBottom on my very slow Pentium 166 MHz
+// computer with Win95. I was not able to find the reason for this strange
+// effect. So the search is executed twice if the first one does not work.</span>
+Key HOME
+Find MatchCase RegExp Up &quot;%/L[1-9][0-9]++*File &quot;
+IfNotFound
+Find MatchCase RegExp Up &quot;%/L[1-9][0-9]++*File &quot;
+EndIf
+EndSelect
+Key HOME
+
+<span class="green">// Next the language definition is copied to a temporary DOS file and the
+// trailing spaces and all blank lines are removed. Then it adds a single
+// empty line at end of the file if the last line is already terminated
+// with a line break or adds 2 line breaks, if the last line is not
+// terminated with a line break. The 2 blank lines at the end of the file
+// are necessary for correct handling the words of the last color group.</span>
+NewFile
+UnixMacToDos
+Paste
+Top
+TrimTrailingSpaces
+Loop
+Find &quot;^p^p&quot;
+Replace All &quot;^p&quot;
+IfNotFound
+ExitLoop
+EndIf
+EndLoop
+Bottom
+IfColNum 1
+&quot;
+&quot;
+Else
+&quot;
+
+&quot;
+EndIf
+
+<span class="green">// Add missing '/' at start of the language definition line and set cursor
+// back to top of file before searching for the language definition keyword
+// Nocase. Because the macro language does not support variables, the first
+// line is used temporary for information storage for the Nocase parameter.</span>
+Top
+&quot;/&quot;
+Key LEFT ARROW
+Find MatchCase RegExp &quot;%/L[1-9][0-9]++*Nocase&quot;
+IfFound
+Top
+&quot;1...Nocase
+&quot;
+Else
+Top
+&quot;0...Nocase
+&quot;
+EndIf
+
+<span class="green">// Next the whole block from start of the language definition line to the
+// first color group specification is selected and deleted. If no selection
+// is present after the find command, the current language definition does
+// not have words in any color group and so nothing is to do for this macro.</span>
+StartSelect
+Find MatchCase RegExp Select &quot;%/C[1-9][0-9]++&quot;
+IfSel
+Key HOME
+Delete
+EndSelect
+Else
+EndSelect
+CloseFile NoSave
+ClearClipboard
+Clipboard 0
+<span class="green">// Insert macro command <span class="red">UnixReOn</span> or <span class="red">PerlReOn</span> here before command
+// <span class="red">ExitMacro</span> if you prefer UNIX or Perl compatible regular expressions.</span>
+ExitMacro
+EndIf
+
+<span class="green">// Lines with words starting with a '/' must start with &quot;// &quot; because the
+// lines with language definition keywords also start with '/'. For this
+// macro the escape string &quot;// &quot; at start of the lines must be removed.
+// And this macro needs a second temp file which is created now once
+// before it is used in the following loops.</span>
+Find RegExp &quot;%// &quot;
+Replace All &quot;&quot;
+NewFile
+UnixMacToDos
+NextWindow
+
+<span class="green">// For substrings a special handling is required. First substrings must
+// be marked to later handle it correct. So the following loop searches
+// for lines with substrings, copies each line to the second temp file
+// and reformats each substring line for example from
+// ** # p_x w_        to        **# **p_x **w_
+// The ** before the substring is the substring marker. This modified
+// substring line is copied back and replaces the original substring line.
+// Note: If the language definition contains normal words with ** at start
+// of the word they will be later by mistake also interpreted as substrings.
+// But I guess, normal words starting with ** are very rare.</span>
+Loop
+Find RegExp &quot;%^*^* &quot;
+IfFound
+SelectLine
+Copy
+PreviousWindow
+Paste
+Top
+Key DEL
+Key DEL
+Find RegExp &quot;[ ^t]+&quot;
+Replace All &quot; **&quot;
+Key DEL
+SelectAll
+Cut
+NextWindow
+Paste
+Else
+ExitLoop
+EndIf
+EndLoop
+
+<span class="green">// Now every word or substring of a color group must be placed on a line
+// with the additional information to which color group the word/substring
+// belongs to. So in a loop with maximum 20 runs (because of a maximum of
+// 20 color groups) search for the color group specification line. If the
+// next such line is found, it is moved to the second temp file. There
+// the macro extracts only the first part of the specification with the
+// color number and the name if completely specified. A style keyword or
+// an invalid name specification (missing second &quot;) is ignored. This
+// important part for identification of the color group is copied to
+// current clipboard 9.</span>
+Top
+Loop 20
+Find MatchCase RegExp &quot;%/C[1-9][0-9]++&quot;
+IfNotFound
+ExitLoop
+EndIf
+SelectLine
+Cut
+PreviousWindow
+Paste
+Top
+Key RIGHT ARROW
+Key RIGHT ARROW
+Key RIGHT ARROW
+IfCharIs &quot;&quot;&quot;
+Key RIGHT ARROW
+Find &quot;&quot;&quot;
+IfFound
+EndSelect
+Key LEFT ARROW
+Key RIGHT ARROW
+Else
+Key LEFT ARROW
+EndIf
+EndIf
+StartSelect
+Key HOME
+Cut
+EndSelect
+SelectLine
+Delete
+
+<span class="green">// Back at first temp file the whole block of words/substrings of the
+// current color group to next color group specification or the end
+// of the file is copied to the second temp file. It's also possible
+// that the current color group does not contain any word/substring
+// and so nothing is to do here for the current color group. Because
+// clipboard 9 already contains the color group identification string
+// clipboard 8 is used for copying the words/substrings.</span>
+NextWindow
+Find MatchCase RegExp Select &quot;%/C[1-9][0-9]++&quot;
+IfNotFound
+Find MatchCase RegExp Select &quot;^p$&quot;
+EndIf
+StartSelect
+Key HOME
+EndSelect
+IfSel
+Clipboard 8
+Copy
+PreviousWindow
+Paste
+
+<span class="green">// The lines with the words and already reformatted substrings of the
+// current color group are splitted up to 1 word per line. Before every word
+// at every line the string &quot;WORD_FROM_LANGDEF=&quot; is inserted. This special
+// string is a marker for start of the line because a regular expression
+// search with % cannot be used later during the search for duplicates in
+// the macros FindDupCase and FindDupNocase. These 2 macros uses ^c for
+// the search for the word/substring and the clipboard content inserted
+// into the search string with ^c is interpreted also as regular expression
+// and not as normal ASCII string if ^c is used in an UltraEdit style
+// regular expression string. So a regular expression search is later
+// not possible because searching for words which contain UltraEdit style
+// regular expression characters would fail. The workaround is to use a
+// special string as marker for the start of the line and use this special
+// string later also in the normal search. After the word or substring the
+// color group identification with the additional &quot; -> in&quot; string for better
+// reading the report is also added to the every line. The reformatted block
+// of words is moved back to first temp file and replaces there the still
+// selected word block.</span>
+Clipboard 9
+Top
+Find RegExp &quot;[ ^t]+&quot;
+Replace All &quot;^p&quot;
+Find RegExp &quot;%^([~^p]+^)&quot;
+Replace All &quot;WORD_FROM_LANGDEF=^1 -> in ^c&quot;
+SelectAll
+Cut
+NextWindow
+Paste
+EndIf
+EndLoop
+
+<span class="green">// The first temp file now contains at top the Nocase information and at
+// every line 1 word/substring with the special start of line marker string
+// and the color group identification. One of the two blank lines at bottom
+// of the file is not needed anymore and so one blank line is here deleted.
+// Clipboard 9 is cleared to be ready for the lines for the final report.</span>
+Bottom
+Key UP ARROW
+Key DEL
+ClearClipboard
+
+<span class="green">// The search for duplicates is later always executed from the current file
+// position to the end of the file and not always from top of the file. This
+// improves speed. Normal words are searched automatically like using search
+// option MatchWord although this option is not used. So there is no problem
+// with different normal words which starts with the same characters. But
+// the search for substring matches is different. Substrings starting with
+// the same characters must be found and reported. If you look at the
+// language definition example above with &quot;p_x&quot; at color 1 and &quot;p_&quot; at
+// color 2, the search for substring &quot;p_&quot; would not find the line with
+// &quot;p_x&quot; because the line with &quot;p_x&quot; is above the line with &quot;p_&quot;. So it
+// is necessary to sort the lines with the substring according to the
+// length of the substring. This is done with the following code block
+// where every line with a substring is cut from the first temp file and
+// collected in clipboard 8. After collecting all lines with a substring
+// (if there are such lines) these lines are pasted into the second temp
+// file and sorted with ignoring the case because only the substring length
+// is important. The sorted substring lines are inserted at top of the first
+// temp file below the Nocase info line and the second temp file is closed
+// because it is not needed anymore. On my very slow Pentium 166 MHz
+// computer with Win95 the first search for a substring line always fails
+// here after moving the cursor from the end to top of the file. The search
+// was always executed anywhere from the middle of the file. So I force UE
+// by inserting a space at top of the file and immediately deleting it to
+// wait before first search until the cursor is really at top of the file.</span>
+Clipboard 8
+ClearClipboard
+Top
+&quot; &quot;
+Key BACKSPACE
+Loop
+Find MatchCase RegExp &quot;WORD_FROM_LANGDEF=^*^**^p&quot;
+IfFound
+CutAppend
+Else
+ExitLoop
+EndIf
+EndLoop
+PreviousWindow
+Paste
+Top
+IfEof
+CloseFile NoSave
+Else
+SortAsc IgnoreCase 1 -1 0 0 0 0 0 0
+SelectAll
+Copy
+EndSelect
+CloseFile NoSave
+Top
+Key DOWN ARROW
+Paste
+EndIf
+
+<span class="green">// All preparations for searching for duplicate words and matching
+// substrings are finished. Now the search for duplicates can be executed
+// according to the Nocase info still available at top of the temp file.
+// This information is here only evaluated once and according to the setting
+// one of the two nearly identical loops is executed. The only difference
+// in the else branch is playing the submacro FindDupCase instead of
+// submacro FindDupNocase if the Nocase keyword was not present at the
+// language definition line. This method with the 2 nearly identical loop
+// code blocks is faster than evaluating the Nocase info within a single
+// loop before calling the appropriate submacro at every line.
+// The loop exit is executed when the last line of the file which must be
+// always terminated with a CR/LF was tested. At every line all characters
+// from the start of the line to first space after the word or substring
+// from the language definition is selected. For normal words the space
+// is still selected when the string is copied to clipboard 8. This has
+// the MatchWord effect for the search in the submacros. If currently a
+// substring is selected, the space is removed from the selection and so
+// substrings are automatically not searched with the MatchWord effect.
+// After selecting and copying the current search string to clipboard 8
+// the next line is bookmarked before the submacro is called. This bookmark
+// is removed after the submacro has finished and the whole procedure is
+// once again executed on the current line if the end of the file is not
+// already reached.</span>
+Top
+IfCharIs &quot;1&quot;
+Key DOWN ARROW
+Loop
+IfEof
+ExitLoop
+EndIf
+StartSelect
+Find Select &quot; &quot;
+Find MatchCase &quot;WORD_FROM_LANGDEF=**&quot;
+Replace All SelectText &quot;WORD_FROM_LANGDEF=**&quot;
+IfFound
+Key LEFT ARROW
+EndIf
+Copy
+EndSelect
+Key HOME
+Key DOWN ARROW
+ToggleBookmark
+PlayMacro 1 &quot;FindDupNocase&quot;
+ToggleBookmark
+EndLoop
+Else
+Key DOWN ARROW
+Loop
+IfEof
+ExitLoop
+EndIf
+StartSelect
+Find Select &quot; &quot;
+Find MatchCase &quot;WORD_FROM_LANGDEF=**&quot;
+Replace All SelectText &quot;WORD_FROM_LANGDEF=**&quot;
+IfFound
+Key LEFT ARROW
+EndIf
+Copy
+EndSelect
+Key HOME
+Key DOWN ARROW
+ToggleBookmark
+PlayMacro 1 &quot;FindDupCase&quot;
+ToggleBookmark
+EndLoop
+EndIf
+
+<span class="green">// After finishing the test for duplicates clipboard 8 can be cleared and
+// also everything of the temp file can be deleted. Then the content of
+// clipboard 9 is pasted into the temp file and clipboard 9 is also cleared.
+// If at least one line was in the clipboard 9 because of a duplicate word
+// or a matching substring the temp file is not empty now. According to
+// found or not found duplicate words or matching substrings the final
+// report layout is created and the cursor is set to top of the report
+// and the user can evaluate it now.</span>
+ClearClipboard
+SelectAll
+Delete
+Clipboard 9
+Paste
+ClearClipboard
+Top
+IfEof
+&quot;Congratulations! No duplicate words found.&quot;
+Else
+Find MatchCase &quot;WORD_FROM_LANGDEF=**&quot;
+Replace All &quot;** &quot;
+Find MatchCase &quot;WORD_FROM_LANGDEF=&quot;
+Replace All &quot;&quot;
+&quot;Sorry! Found following duplicate words:
+&quot;
+EndIf
+Top
+Clipboard 0
+
+<span class="green">// Insert macro command <span class="red">UnixReOn</span> or <span class="red">PerlReOn</span> here at the end of the
+// macro if you prefer UNIX or Perl compatible regular expressions.</span></pre>
+
+</body>
+</html>

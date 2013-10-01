@@ -1,36 +1,45 @@
-/L20"Markdown" Nocase EnableSpellasYouType Line Comment Num = 4     Line Comment Valid Columns = [1] Line Comment Alt = > Line Comment Valid Columns Alt = [1] Block Comment On Alt = ``` String Chars = " EnableMLS File Extensions = MD
-/Delimiters = ! "	$%&'()*+,./:;<>?@[\]^_`{|}~
+/L9"Markdown" JSCRIPT_LANG Line Comment = // Block Comment On = /* Block Comment Off = */ Escape Char = \ String Chars = " File Extensions = MD
+/Delimiters = ~!@%^&*()-+=|\/{}[]:;"'<> ,	.?
+/Function String = "%[ ^t]++function[ ^t]++^([a-zA-Z_][a-zA-Z_0-9]++[^t ]++(*)^)"
+/Function String 1 = "%[ ^t]++^(*^)=[ ^t]++function[ ^t]++(*)"
+/Function String 2 = "%[ ^t]++^(*^):[ ^t]++function[ ^t]++(*)"
+/Function String 3 = "<[~/]^(++^)>"
 /TGBegin "Heading 1"
-/TGFindStr = "%# ^(?+^)$"
-/TGFindStr = "%^(?+^)^p====+$"
+/TGFindStr = "%[ ^t]++# ^(?+^)^["
+/TGFindStr = "%[ ^t]++# ^(?+^)$"
 /TGEnd
 /TGBegin "Heading 2"
-/TGFindStr = "%## ^(?+^)$"
-/TGFindStr = "%^(?+^)^p----+$"
+/TGFindStr = "%[ ^t]++## ^(?+^)^["
+/TGFindStr = "%[ ^t]++## ^(?+^)$"
 /TGEnd
 /TGBegin "Heading 3"
-/TGFindStr = "%### ^(*^)$"
+/TGFindStr = "%[ ^t]++### ^(*^)^["
+/TGFindStr = "%[ ^t]++### ^(*^)$"
 /TGEnd
 /TGBegin "Heading 4"
-/TGFindStr = "%#### ^(*^)$"
+/TGFindStr = "%[ ^t]++#### ^(*^)^["
+/TGFindStr = "%[ ^t]++#### ^(*^)$"
 /TGEnd
 /TGBegin "Heading 5"
-/TGFindStr = "%##### ^(*^)$"
+/TGFindStr = "%[ ^t]++##### ^(*^)^["
+/TGFindStr = "%[ ^t]++##### ^(*^)$"
 /TGEnd
 /TGBegin "Heading 6"
-/TGFindStr = "%###### ^(*^)$"
+/TGFindStr = "%[ ^t]++###### ^(*^)^["
+/TGFindStr = "%[ ^t]++###### ^(*^)$"
+/TGEnd
+/TGBegin "Code"
+/TGFindStr = "%[ ^t]++<pre name="^(*^)">"
 /TGEnd
 /Open Brace Strings = "<" "(" "[" "{"
 /Close Brace Strings = ">" ")" "]" "}"
-/Open Fold Strings = "#" "===="
-/Close Fold Strings = "#" "===="
+/Open Fold Strings = "#" "{" ">"
+/Close Fold Strings = "#" "}" "</"
 /Marker Characters = "[]()"
 /C1"Heading 1"
 #
-** ====
 /C2"Heading 2"
 ##
-** ----
 /C3"Heading 3"
 ###
 /C4"Heading 4"

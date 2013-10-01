@@ -1,0 +1,472 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+ <title>Description of the language settings macros for UltraEdit/UEStudio</title>
+ <meta name="date" content="2011-06-13">
+ <meta name="author" content="Mofi">
+ <meta http-equiv="content-language" content="en">
+ <meta http-equiv="content-style-type" content="text/css">
+ <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+ <style type="text/css">
+  body    { font-family:Arial }
+  strong  { font-weight:bold  }
+  .red    { color:red    }
+  .blue   { color:blue   }
+  .green  { color:green  }
+  .maroon { color:maroon }
+  div     { margin:25px 0px; height:3px }
+  hr      { color:black; background-color:black; height:2px; border:0px solid white }
+  hr.w50  { color:maroon; background-color:maroon; height:2px; border:0px solid white; width:50%; text-align:left; margin-left:0px }
+  pre     { font-family:'Courier New'; font-size:105% }
+  h2      { font-size:120%; font-weight:bold }
+  li      { line-height:1.5em }
+ </style>
+</head>
+
+<body>
+
+<h2>Language color and font style settings</h2>
+
+<p>The UltraEdit versions prior v9.00 support up to 10 syntax highlighting languages per wordfile.
+UltraEdit v9.00 to v14.20 and all versions of UEStudio up to v9.00 support up to 20&nbsp;languages
+per wordfile. (Later versions of UltraEdit and UEStudio support also up to 20&nbsp;languages in a
+single wordfile, but these versions use by default a wordfiles directory.) These versions save the
+color and font style settings in the INI file or registry.<br>Here is an example of the settings
+for the first syntax highlighting language in the INI file with the defaults of UltraEdit.</p>
+
+<p><span class="maroon">[Language 1 Colors]</span><br>
+Colors=0,<span style="color:#008080">8421376</span>,<span style="color:#008080">8421376</span>,<!--
+--><span style="color:#808080">8421504</span>,<span style="color:#FF0000">255</span>,<!--
+--><span style="color:#0000FF">16711680</span>,<span style="color:#FF0000">255</span>,<!--
+--><span style="color:#FF8000">33023</span>,<span style="color:#008000">32768</span>,<!--
+--><span style="color:#804040">4210816</span>,<span style="color:#0000FF">16711680</span>,<!--
+--><span style="color:#0000FF">16711680</span>,<span style="color:#0000FF">16711680</span>,<br>
+Colors Auto Back=1,1,1,1,1,1,1,1,1,1,1,1,1,<br>
+Colors&nbsp;Back=16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,<br>
+Font Style=0,0,0,0,0,0,0,0,0,0,0,0,0,</p>
+
+<p>The first line <span class="blue">Colors=</span> contains the decimal values of the colors
+for the 13 color groups:</p>
+
+<ol>
+ <li>Normal Text</li>
+ <li>Comments</li>
+ <li>Alternate Block Comments</li>
+ <li>Strings</li>
+ <li>Numbers</li>
+ <li>Word List 1</li>
+ <li>Word List 2</li>
+ <li>Word List 3</li>
+ <li>Word List 4</li>
+ <li>Word List 5</li>
+ <li>Word List 6</li>
+ <li>Word List 7</li>
+ <li>Word List 8</li>
+</ol>
+
+<p>The values can be calculated with following formula:</p>
+
+<p style="margin-left:15px">Color value = <span class="blue">value of blue</span> * 65536 +
+<span class="green">value of green</span> * 256 + <span class="red">value of red</span></p>
+
+<p>The values are maybe easier to read after converting them to hexadecimal. For example the
+decimal value 8404992 is hexadecimal <span class="blue">80</span><span class="green">40</span><!--
+--><span class="red">00</span>. The first character pair of the hex value is the value of blue,
+the second is for green and the third one for red. Please note that the color values in CSS files
+or CSS sections are in reverse order: red, blue and green. The maximum value is 16777215 (FFFFFF)
+which is the value of white. However, the colors can be specified easily in the syntax highlighting
+configuration dialog. There is really no need to calculate the values manually.</p>
+
+<p>The second line <span class="blue">Colors Auto Back=</span> contains the state of the setting
+<strong>Background Color Automatic</strong> for the 13&nbsp;color groups. The values can be only
+0 or 1. The default value of 1 means that the background color for this color group is the same
+as specified for example at <strong>View - Set Colors</strong> for normal text background. A value
+of 0 for a color group enables the special background color setting for this color group.</p>
+
+<p>The third line <span class="blue">Colors Back=</span> contains the decimal color values of
+the background colors for the 13&nbsp;color groups. A color value in this line gets active only
+when the corresponding value in the line above is 0.</p>
+
+<p>The fourth line <span class="blue">Font Style=</span> contains the font style settings for
+the color groups. The possible values are:</p>
+
+<ul>
+ <li>0 ... normal</li>
+ <li>1 ... bold</li>
+ <li>2 ... italic</li>
+ <li>3 ... underline</li>
+</ul>
+
+<p>The first value for color group <span class="maroon">Normal Text</span> is ignored and is always 0. When
+using bold, italic or underline the font used should be a fixed pitch font. A fixed pitch font is a font
+with same width for a letter in all styles. So for example a normal <span class="red">E</span> has the same
+width as a bold <strong><span class="red">E</span></strong>, an italic <em><span class="red">E</span></em>
+and an underlined <span class="red" style="text-decoration:underline">E</span>. If the font is additionally
+also a mono-spaced font&nbsp;- all characters have the same width&nbsp;- or a proportional font&nbsp;-
+each character has an individual width&nbsp;- is not so important when using the font styles for
+syntax highlighting.</p>
+
+<p>Here is an example how the settings above are stored in the registry:</p>
+
+<p><span class="maroon">[HKEY_CURRENT_USER\Software\IDM Computer Solutions\UltraEdit\Language 1 Colors]</span><br>
+<span class="green">&quot;Colors&quot;="0,8421376,8421376,8421504,255,16711680,255,33023,32768,4210816,16711680,16711680,16711680,"<br>
+&quot;Colors&nbsp;Back&quot;="16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,16777215,"<br>
+&quot;Colors Auto Back&quot;="1,1,1,1,1,1,1,1,1,1,1,1,1,"<br>
+&quot;Font Style&quot;="0,0,0,0,0,0,0,0,0,0,0,0,0,"</span></p>
+
+<p><br>With UltraEdit v15.00 and UEStudio v9.10 the organization of syntax highlighting languages
+has been changed. Instead of using only 1&nbsp;wordfile with up to 20&nbsp;languages the default for
+new installations is now that UE/UES searches in a configured directory for wordfiles (*.uew) which
+contain normally only 1&nbsp;language, but can contain also several languages. The language number
+is not important anymore and there is no limit for the number of languages anymore. But for downwards
+compatibility a single wordfile instead of a wordfiles directory is used further after an upgrade from
+a previous version.</p>
+
+<p>Because of this new management the color and font style settings of the languages are not stored
+anymore in the INI file or registry. They are now stored in the wordfile itself for every language.
+The settings are stored in the wordfile(s) as follows:</p>
+
+<p>/Colors = 0,<span style="color:#008080">8421376</span>,<span style="color:#008080">8421376</span>,<!--
+--><span style="color:#808080">8421504</span>,<span style="color:#FF0000">255</span><br>
+/Colors Back = 16777215,16777215,16777215,16777215,16777215,<br>
+/Colors Auto Back = 1,1,1,1,1,<br>
+/Font Style = 0,0,0,0,0,<br>
+/C1 Colors = <span style="color:#0000FF">16711680</span> Colors Back = 16777215 Colors Auto Back = 1 Font Style = 0<br>
+/C2 Colors = <span style="color:#FF0000">255</span> Colors Back = 16777215 Colors Auto Back = 1 Font Style = 0<br>
+/C3 Colors = <span style="color:#FF8000">33023</span> Colors Back = 16777215 Colors Auto Back = 1 Font Style = 0<br>
+/C4 Colors = <span style="color:#008000">32768</span> Colors Back = 16777215 Colors Auto Back = 1 Font Style = 0<br>
+/C5 Colors = <span style="color:#804040">4210816</span> Colors Back = 16777215 Colors Auto Back = 1 Font Style = 0<br>
+/C6 Colors = <span style="color:#0000FF">16711680</span> Colors Back = 16777215 Colors Auto Back = 1 Font Style = 0<br>
+/C7 Colors = <span style="color:#0000FF">16711680</span> Colors Back = 16777215 Colors Auto Back = 1 Font Style = 0<br>
+/C8 Colors = <span style="color:#0000FF">16711680</span> Colors Back = 16777215 Colors Auto Back = 1 Font Style = 0</p>
+
+<p>The first four lines with the settings for the standard color groups <span class="maroon">Normal
+Text</span>, <span class="maroon">Comments</span>, <span class="maroon">Alternate Block Comments</span>,
+<span class="maroon">Strings</span> and <span class="maroon">Numbers</span> are stored in the wordfile
+below the language definition line.</p>
+
+<p>The settings for the color groups with the word lists are appended to the color group definition
+lines starting with /C1&nbsp;- /C8 followed normally by the group name in double quotes and optionally
+by a style keyword for the IntelliTip feature of UEStudio. With UltraEdit v17.00 and UEStudio v11.00
+the number of color groups increased from 8 to 20. Therefore wordfiles for UltraEdit v17.00 or
+UEStudio v11.00 or any later version can contain also color groups /C9&nbsp;- /C20.</p>
+
+<p>Note: It is required that before and after every equal sign exactly 1 space character exists.
+And the names of the settings are case sensitive.</p>
+
+<p>On first start after an upgrade from a previous version the language settings are copied from the INI or
+registry into the wordfile and saved on exit in the wordfile. Every <span class="maroon">[Language</span>
+<span class="red">x</span> <span class="maroon">Colors]</span> section once copied into a wordfile is
+automatically completely removed from the INI or registry. So normally after first start (more precisely
+exit) of UE/UES after an upgrade the INI or registry contains only the language color sections of languages
+not found in the wordfile. Those color sections can be deleted manually from the INI or registry.</p>
+
+
+<div><hr></div>
+
+
+<h2>Managing the wordfiles and their settings</h2>
+
+<p>UltraEdit v15.00 or UEStudio v9.10 and later are installed with standard wordfiles (*.uew) in
+a subdirectory named <span class="blue">wordfiles</span> in the program directory of UE/UES. These
+wordfiles contain no color and font style settings. On start of UE/UES the whole wordfiles directory
+is copied to &quot;<span class="blue">%appdata%\IDMComp\UltraEdit\</span>&quot; respectively
+&quot;<span class="blue">%appdata%\IDMComp\UEStudio\</span>&quot; if such a directory does not
+already exist. This directory is also set as wordfiles directory in the INI file or registry.
+A different directory can be specified in the syntax highlighting configuration dialog.</p>
+
+<p>The procedure as written above is also executed when upgrading from UltraEdit prior
+v15.00 or UEStudio prior v9.10 with one exception: the path to the wordfile in the INI
+file or registry is not modified and the wordfile from the previous version is used further.</p>
+
+
+<p><br><strong>ATTENTION!</strong></p>
+
+<p>The macros are not working correct when the setting &quot;<em>Automatically copy to clipboard when selection
+is made</em>&quot; at <strong>Configuration - Editor - Miscellaneous</strong> is enabled. Uncheck this setting
+before running any macro. And also disable word-wrap mode if word-wrap is enabled for the wordfile or by
+default for new (temporary) files.</p>
+
+<p><br>If you find any bugs or have other related questions, post it at
+<a href="http://www.ultraedit.com/forums/viewtopic.php?t=443">http://www.ultraedit.com/forums/viewtopic.php?t=443</a>.</p>
+
+
+<div><hr class="w50"></div>
+
+
+<p>Maybe you are a user who upgraded from a previous version and you want to use now also
+several wordfiles in a wordfiles directory instead of 1&nbsp;wordfile with several languages.
+In this case the macro <strong>SplitToWordfiles</strong> is for you. It is very easy to use.</p>
+
+<p><strong>How to use SplitToWordfiles?</strong></p>
+
+<ol>
+ <li>Open your wordfile in UltraEdit / UEStudio. The full name of the wordfile currently used can
+  be seen in <strong>Advanced - Configuration - Editor Display - Syntax Highlighting</strong>.</li>
+ <li>Load the macro file <span class="maroon">SyntaxTools.mac</span> via <strong>Macro - Load</strong>.</li>
+ <li>Run the macro <strong>SplitToWordfiles</strong> via <strong>Macro - Play Any/Multiple Times</strong>
+  with the value <span class="red">1</span> for <em>Specify number of times to repeat macro</em>
+  and option <em>Play macro to End of File</em> unchecked.<br>
+  Or click on <strong>View - Views/Lists - Macro List</strong> to open the macro list view if not
+  already open and double click on the macro <strong>SplitToWordfiles</strong> to execute it.</li>
+ <li>You will have now lots of new files depending on the number of languages in your wordfile.
+  Save every wordfile with an appropriate file name and the extension <strong>uew</strong> in a
+  directory of your choice.</li>
+ <li>Open the syntax highlighting configuration or the project settings dialog and specify the
+  directory with your wordfiles for being used in future.</li>
+</ol>
+
+
+<div><hr class="w50"></div>
+
+
+<p>The opposite of <em>SplitToWordfiles</em> is the macro <strong>WordfilesMerger</strong>. This
+macro can be useful for all UE/UES users independent of the version they use. It is mainly written to
+merge the contents of several wordfiles into one wordfile. But it does not only copy the contents of
+all open wordfiles into a new file. It also renumbers the languages by keeping the existing language
+number as much as possible. And all languages with language number&nbsp;20 get automatically the next
+free language number. And in the last step the macro re-orders the syntax highlighting languages.</p>
+
+<p>So the macro <strong>WordfilesMerger</strong> can be used with a single wordfile
+open just for re-ordering the languages in this wordfile (done in a new file).</p>
+
+<p>It can be used to append a downloaded wordfile to an existing wordfile with 1 or more languages as
+explained in the power tip <a href="http://www.ultraedit.com/support/tutorials_power_tips/ultraedit/add_a_wordfile_pre_v15.html">Adding
+a wordfile in UltraEdit pre v15.00</a> or in the <a href="http://www.ultraedit.com/forums/viewtopic.php?t=5720">Readme
+for the Syntax Highlighting forum</a> a little bit more comfortable.</p>
+
+<p>Or it is used for example to create a project specific wordfile by opening all wordfiles required
+for a project and running this macro.</p>
+
+<p><strong>How to use WordfilesMerger?</strong></p>
+
+<ol>
+ <li>Open the wordfiles of which contents you want to copy into a new wordfile. Other files can be
+  open too which are ignored by the macro. But better is definitely to have only wordfiles open.</li>
+ <li>Load the macro file <span class="maroon">SyntaxTools.mac</span> via <strong>Macro - Load</strong>.</li>
+ <li>Run the macro <strong>WordfilesMerger</strong> via <strong>Macro - Play Any/Multiple Times</strong>
+  with the value <span class="red">1</span> for <em>Specify number of times to repeat macro</em>
+  and option <em>Play macro to End of File</em> unchecked.<br>
+  Or click on <strong>View - Views/Lists - Macro List</strong> to open the macro list view if not
+  already open and double click on the macro <strong>WordfilesMerger</strong> to execute it.</li>
+ <li>You will have now a new file with all the languages of the wordfiles, possibly renumbered
+  partly or completely and correct ordered according to the language number. Save the wordfile
+  with an appropriate file name.</li>
+ <li>Open the syntax highlighting configuration or the project settings dialog and specify this
+  wordfile for being used in future.</li>
+</ol>
+
+
+<div><hr class="w50"></div>
+
+
+<p>You are using UltraEdit v15.00 or UEStudio v9.10 or any later and you want to publish a wordfile
+you have created for example by sending it by email to IDM for their download area. Or you want to
+give your wordfile(s) somebody else which uses a different color scheme than you. In this case the
+macro <strong>SettingsDelAll</strong> should be used. It deletes all the color and font style
+settings from the wordfile currently open and active.</p>
+
+<p><strong>How to use SettingsDelAll?</strong></p>
+
+<ol>
+ <li>Open the wordfile in UltraEdit / UEStudio.</li>
+ <li>Load the macro file <span class="maroon">SyntaxTools.mac</span> via <strong>Macro - Load</strong>.</li>
+ <li>Run the macro <strong>SettingsDelAll</strong> via <strong>Macro - Play Any/Multiple Times</strong>
+  with the value <span class="red">1</span> for <em>Specify number of times to repeat macro</em>
+  and option <em>Play macro to End of File</em> unchecked.<br>
+  Or click on <strong>View - Views/Lists - Macro List</strong> to open the macro list view if not
+  already open and double click on the macro <strong>SettingsDelAll</strong> to execute it.</li>
+ <li>You will have now a wordfile without any settings like the wordfiles used by UltraEdit prior
+  v15.00 or UEStudio prior v9.10. Save the wordfile with a new name of your choice.</li>
+</ol>
+
+
+<div><hr class="w50"></div>
+
+
+<p>The macro <strong>SettingsDelCur</strong> is similar <em>SettingsDelAll</em>. It also removes all
+color and font style settings, but only for the language the cursor is currently set instead of the
+entire wordfile. If a wordfile contains only one language, it makes no difference which macro is
+executed: <em>SettingsDelAll</em> or <em>SettingsDelCur</em>, except <em>SettingsDelAll</em> is much
+faster. <em>SettingsDelCur</em> is used also by the macro <em>SettingsCopyCur</em> explained later
+in this document.</p>
+
+<p><strong>How to use SettingsDelCur?</strong></p>
+
+<ol>
+ <li>Open the wordfile in UltraEdit / UEStudio and set the cursor at start or anywhere inside the
+  syntax highlighting language of which the color and font style settings should be removed.</li>
+ <li>Load the macro file <span class="maroon">SyntaxTools.mac</span> via <strong>Macro - Load</strong>.</li>
+ <li>Run the macro <strong>SettingsDelCur</strong> via <strong>Macro - Play Any/Multiple Times</strong>
+  with the value <span class="red">1</span> for <em>Specify number of times to repeat macro</em>
+  and option <em>Play macro to End of File</em> unchecked.<br>
+  Or click on <strong>View - Views/Lists - Macro List</strong> to open the macro list view if not
+  already open and double click on the macro <strong>SettingsDelCur</strong> to execute it.</li>
+</ol>
+
+
+<div><hr class="w50"></div>
+
+
+<p>In UltraEdit prior v15.00 and UEStudio prior v9.10 the color scheme of a syntax highlighting
+language was stored as a section in the INI file or registry. Therefore it was quite simple to
+apply a preferred color scheme to all languages by simply replicating the block for every language.
+Also copying a color scheme into a new file and give this file to somebody else which want the color
+scheme too was no problem.</p>
+
+<p>Now with the color scheme saved individually in the wordfile it is possible to share or distribute
+more easily the wordfile of a syntax highlighting language together with the color and font style
+settings. That is great for example for a team working on a project where the members want to use
+all the same color scheme too.</p>
+
+<p>But with the color scheme saved in the wordfile it is not so easy anymore to apply a preferred
+language color scheme to a wordfile got from a team member, colleague or friend, or downloaded for
+example from <a href="http://www.ultraedit.com/downloads/extras.html">Downloads&nbsp;- Extras</a>.
+It is also more difficult to share with somebody else only the language color scheme.</p>
+
+<p>The macros <strong>SettingsCopyAll</strong>, <strong>SettingsCopyCur</strong> and
+<strong>SettingsExtract</strong> are written to help you to manage the language color
+settings in wordfiles of UltraEdit v15.00 or UEStudio v9.10 or any later.</p>
+
+
+<p><br>The macro <strong>SettingsExtract</strong> copies the color and font style settings of
+one language in the wordfile into a new file which can be saved for example with the extension
+<span class="maroon">uesh</span>. This file can be used later by yourself for new wordfiles or
+to share the language color scheme with somebody else.</p>
+
+<p><strong>How to use SettingsExtract?</strong></p>
+
+<ol>
+ <li>Open the wordfile in UltraEdit / UEStudio and set the cursor at start or anywhere inside the
+  syntax highlighting language of which the color and font style settings should be extracted.</li>
+ <li>Load the macro file <span class="maroon">SyntaxTools.mac</span> via <strong>Macro - Load</strong>.</li>
+ <li>Run the macro <strong>SettingsExtract</strong> via <strong>Macro - Play Any/Multiple Times</strong>
+  with the value <span class="red">1</span> for <em>Specify number of times to repeat macro</em>
+  and option <em>Play macro to End of File</em> unchecked.<br>
+  Or click on <strong>View - Views/Lists - Macro List</strong> to open the macro list view if not
+  already open and double click on the macro <strong>SettingsExtract</strong> to execute it.</li>
+ <li>Save the new file with just the language color scheme in the wordfile format with a name of
+  your choice, for example as *.uesh (UltraEdit Syntax Highlighting color scheme).</li>
+</ol>
+
+
+<div><hr class="w50"></div>
+
+
+<p>The macro <strong>SettingsCopyAll</strong> copies the color and font style settings in the
+wordfile format for example from a *.uesh file created before by you or somebody else with the macro
+<em>SettingsExtract</em> to all languages in a wordfile. It is also possible to use another wordfile
+as color scheme source instead of a file containing only the color scheme. But it is recommended to
+use a syntax highlighting color scheme file as source file. With this macro you can easily apply your
+preferred language color scheme to all languages in a wordfile, or when you run it multiple times,
+to all wordfiles you use. It does not matter if the wordfile contains already color settings or not.
+Existing color settings are automatically completely deleted before copying the new color settings
+to all languages in the wordfile.</p>
+
+<p><strong>How to use SettingsCopyAll?</strong></p>
+
+<ol>
+ <li>Save and close all files currently open in UltraEdit / UEStudio or open a new instance.</li>
+ <li>Open the wordfile in UltraEdit / UEStudio into which you want to copy the color settings.</li>
+ <li>Open the file containing the color scheme you want to copy. Make sure that this file has
+  now the focus if it was already open.</li>
+ <li>Load the macro file <span class="maroon">SyntaxTools.mac</span> via <strong>Macro - Load</strong>.</li>
+ <li>Run the macro <strong>SettingsCopyAll</strong> via <strong>Macro - Play Any/Multiple Times</strong>
+  with the value <span class="red">1</span> for <em>Specify number of times to repeat macro</em>
+  and option <em>Play macro to End of File</em> unchecked.<br>
+  Or click on <strong>View - Views/Lists - Macro List</strong> to open the macro list view if not
+  already open and double click on the macro <strong>SettingsCopyAll</strong> to execute it.</li>
+ <li>Save the wordfile with the new language color scheme copied to all languages in the wordfile.</li>
+</ol>
+
+
+<div><hr class="w50"></div>
+
+
+<p>The macro <strong>SettingsCopyCur</strong> is similar <em>SettingsCopyAll</em>. The difference is
+that the color settings are copied only to the language the cursor is currently set instead of all
+languages in the entire wordfile. If a wordfile contains only one language, it makes no difference which
+macro is executed: <em>SettingsCopyAll</em> or <em>SettingsCopyCur</em>, except <em>SettingsCopyAll</em>
+is faster. Existing color settings for the current language are automatically completely deleted by
+playing macro <em>SettingsDelCur</em> before copying the new color settings to the current language
+in the wordfile.</p>
+
+<p><strong>How to use SettingsCopyCur?</strong></p>
+
+<ol>
+ <li>Save and close all files currently open in UltraEdit / UEStudio or open a new instance.</li>
+ <li>Open the wordfile in UltraEdit / UEStudio into which you want to copy the color settings.</li>
+ <li>Set the cursor at start or anywhere inside the syntax highlighting language to which the
+  color and font style settings should be copied.</li>
+ <li>Open the file containing the color scheme you want to copy. Make sure that this file has
+  now the focus if it was already open.</li>
+ <li>Load the macro file <span class="maroon">SyntaxTools.mac</span> via <strong>Macro - Load</strong>.</li>
+ <li>Run the macro <strong>SettingsCopyCur</strong> via <strong>Macro - Play Any/Multiple Times</strong>
+  with the value <span class="red">1</span> for <em>Specify number of times to repeat macro</em>
+  and option <em>Play macro to End of File</em> unchecked.<br>
+  Or click on <strong>View - Views/Lists - Macro List</strong> to open the macro list view if not
+  already open and double click on the macro <strong>SettingsCopyCur</strong> to execute it.</li>
+ <li>Save the wordfile with the new language color scheme copied to the current language.</li>
+</ol>
+
+
+<div><hr class="w50"></div>
+
+
+<p>But what to do when you upgraded from a previous version of UltraEdit or UEStudio and UE/UES has not
+copied the color and font style settings into your wordfile or you lost the settings in the wordfile(s)?
+If you still have a copy of the INI file containing the sections with the language colors and font style
+settings you have luck because you can use the macro <strong>SettingsCopyIni</strong> to copy the settings
+from the INI file into the wordfile(s). Please note that this macro supports only up to 8&nbsp;color groups
+while all others support up to 20&nbsp;color groups because more colors are not stored in the INI file.</p>
+
+<p><strong>How to use SettingsCopyIni?</strong></p>
+
+<ol>
+ <li>Save and close all files currently open in UltraEdit / UEStudio or open a new instance.</li>
+ <li>Open the INI file containing the sections <strong>[Language <span class="red">x</span> Colors]</strong>
+  with <span class="red">x</span> is a number in the range of 1 to 20. It is important that this file has
+  the file extension INI in any case.</li>
+ <li>Open the wordfile in UltraEdit / UEStudio into which you want to copy the color settings. It does
+  not matter which file extension this wordfile has.</li>
+ <li>Save this wordfile to a temporary directory with the same name. Do not run the macro on a wordfile
+  currently in use by UE/UES. It could happen that the color and font style settings copied by the macro
+  into the wordfile are replaced on exit of UltraEdit with the current settings in memory. Therefore run
+  the macro on a copy of the wordfile in a different directory.</li>
+ <li>Load the macro file <span class="maroon">SyntaxTools.mac</span> via <strong>Macro - Load</strong>.</li>
+ <li>Set the cursor at start or anywhere inside the syntax highlighting language to which the color and
+  font style settings should be copied. It does not matter if this language already contains (wrong)
+  color and font style settings. These settings are automatically removed by the macro before copying
+  the settings from the INI file.</li>
+ <li>Run the macro <strong>SettingsCopyIni</strong> via <strong>Macro - Play Any/Multiple Times</strong>
+  with the value <span class="red">1</span> for <em>Specify number of times to repeat macro</em>
+  and option <em>Play macro to End of File</em> unchecked.<br>
+  Or click on <strong>View - Views/Lists - Macro List</strong> to open the macro list view if not
+  already open and double click on the macro <strong>SettingsCopyIni</strong> to execute it.</li>
+ <li>If you have other languages in the wordfile redo the steps 6. and 7. for every language in the
+  wordfile. You can't run the macro simply several times because the macro positions always the cursor
+  to start of the language which was updated so that you can easily control if everything is correct
+  after macro execution. Running the macro simply multiple times would result in just updating the
+  same language several times.</li>
+ <li>Save the wordfile and close all instances of UE/UES.</li>
+ <li>Cut the updated wordfile in the temporary directory and paste it over the wordfile loaded by
+  UltraEdit&nbsp;/ UEStudio.</li>
+</ol>
+
+
+<div><hr></div>
+
+
+<h2>Disclaimer</h2>
+
+<p>THIS MACRO SET IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR
+IMPLIED, STATUTORY OR OTHERWISE, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT,
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO USE, RESULTS AND PERFORMANCE
+OF THE MACRO SET IS ASSUMED BY YOU AND IF THE MACRO SET SHOULD PROVE TO BE DEFECTIVE, YOU ASSUME THE
+ENTIRE COST OF ALL NECESSARY SERVICING, REPAIR OR OTHER REMEDIATION. UNDER NO CIRCUMSTANCES, CAN THE
+AUTHOR BE HELD RESPONSIBLE FOR ANY DAMAGE CAUSED IN ANY USUAL, SPECIAL, OR ACCIDENTAL WAY OR BY THE
+MACRO SET.</p>
+
+</body>
+</html>
